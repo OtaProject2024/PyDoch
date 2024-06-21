@@ -26,6 +26,13 @@ class Channel:
     def set_duty(self, duty=50):
         self.pwm.ChangeDutyCycle(duty)
 
+    # Change voltage
+    def set_volt(self, hl=True):
+        if hl:
+            GPIO.output(self.channel, GPIO.HIGH)
+        else:
+            GPIO.output(self.channel, GPIO.LOW)
+
     # Deactivate channel
     def end(self):
         if self.pwm is not None:

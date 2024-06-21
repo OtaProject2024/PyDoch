@@ -1,4 +1,4 @@
 import murdoch
 
-i = murdoch.SVMotor()
+i = murdoch.DCMotor()
 i.run(90)
