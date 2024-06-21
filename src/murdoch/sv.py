@@ -14,7 +14,7 @@ class SVMotor:
         self.ch.set_duty(d)
 
     def run(self, angle=30):
-        for i in range(5):
+        for i in range(10):
             self.__angle(angle)
             time.sleep(1.0)
             self.__angle(angle * -1)
