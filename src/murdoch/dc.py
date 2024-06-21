@@ -35,11 +35,17 @@ class DCMotor:
 
     def run(self, wait=15):
         self.__forward()
+        self.__speed(25)
+        print("speed 25")
+        time.sleep(wait)
         self.__speed(50)
+        print("speed 50")
         time.sleep(wait)
         self.__speed(75)
+        print("speed 75")
         time.sleep(wait)
         self.__speed(100)
+        print("speed 100")
         time.sleep(wait)
 
         self.ch1.end()
