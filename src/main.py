@@ -1,4 +1,5 @@
 import threading
+import time
 
 import murdoch
 
@@ -31,6 +32,7 @@ def bt():
 
     b = murdoch.Button()
     flg = b.run()
+    time.sleep(0.5)
     flg = b.run()
     b.stop()
 

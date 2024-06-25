@@ -21,9 +21,9 @@ class SVMotor:
 
     def run(self):
         self.__angle(self.angle)
-        time.sleep(1.0)
+        time.sleep(0.5)
         self.__angle(self.angle * -1)
-        time.sleep(1.0)
+        time.sleep(0.5)
 
     def stop(self):
         self.ch.end()
