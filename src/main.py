@@ -47,9 +47,9 @@ def main():
     t2.start()
     t3.start()
 
-    t3.join()
     t1.join()
     t2.join()
+    t3.join()
 
 
 if __name__ == '__main__':
