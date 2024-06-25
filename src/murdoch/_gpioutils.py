@@ -1,17 +1,25 @@
+import time
+
 import RPi.GPIO as GPIO
 
 
 # Controlling GPIO channel
 class Channel:
     # Activate channel
-    def __init__(self, ch=12, io=False):
+    def __init__(self, ch=12, io=False, pull=False):
         self.channel = ch
         self.pwm = None
 
         if io:
-            GPIO.setup(self.channel, GPIO.IN)
+            if pull:
+                GPIO.setup(self.channel, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            else:
+                GPIO.setup(self.channel, GPIO.IN)
         else:
-            GPIO.setup(self.channel, GPIO.OUT)
+            if pull:
+                GPIO.setup(self.channel, GPIO.OUT, pull_up_down=GPIO.PUD_UP)
+            else:
+                GPIO.setup(self.channel, GPIO.OUT)
 
     # Return string
     def __str__(self):
@@ -33,8 +41,26 @@ class Channel:
         else:
             GPIO.output(self.channel, GPIO.LOW)
 
+    # Wait for change
+    def wait(self):
+        GPIO.wait_for_edge(self.channel, GPIO.FALLING)
+
     # Deactivate channel
     def end(self):
         if self.pwm is not None:
             self.pwm.stop()
         GPIO.cleanup(self.channel)
+
+
+# Controlling loop processing
+class Loop:
+    # Specify time period
+    def __init__(self, period=30):
+        self.period = period
+        self.start_time = None
+
+    # Start processing
+    def run(self, func, *args):
+        self.start_time = time.time()
+        while (time.time() - self.start_time) < self.period:
+            func(*args)

@@ -8,16 +8,22 @@ class SVMotor:
         self.ch = Channel(ch)
         self.ch.set_pwm(freq, 0)
 
+        self.angle = 0
+
     # Convert angle to duty ratio
     def __angle(self, angle):
         d = 2.5 + (12.0 - 2.5) * (angle + 90) / 180
         self.ch.set_duty(d)
 
-    def run(self, angle=30):
-        for i in range(10):
-            self.__angle(angle)
-            time.sleep(1.0)
-            self.__angle(angle * -1)
-            time.sleep(1.0)
+    def start(self, angle=30):
+        self.__angle(self.angle)
+        self.angle = angle
 
+    def run(self):
+        self.__angle(self.angle)
+        time.sleep(1.0)
+        self.__angle(self.angle * -1)
+        time.sleep(1.0)
+
+    def stop(self):
         self.ch.end()

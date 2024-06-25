@@ -1,4 +1,3 @@
-import time
 from ._gpioutils import Channel
 
 
@@ -30,24 +29,15 @@ class DCMotor:
         self.ch2.set_volt(True)
         self.ch3.set_volt(True)
 
+    # Change speed
     def __speed(self, pw=100):
         self.ch1.set_duty(pw)
 
-    def run(self, wait=15):
+    def start(self):
         self.__forward()
-        self.__speed(25)
-        print("speed 25")
-        time.sleep(wait)
-        self.__speed(50)
-        print("speed 50")
-        time.sleep(wait)
-        self.__speed(75)
-        print("speed 75")
-        time.sleep(wait)
         self.__speed(100)
-        print("speed 100")
-        time.sleep(wait)
 
+    def stop(self):
         self.ch1.end()
         self.ch2.end()
         self.ch3.end()
