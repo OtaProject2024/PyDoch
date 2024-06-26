@@ -33,9 +33,9 @@ class DCMotor:
     def __speed(self, pw=100):
         self.ch1.set_duty(pw)
 
-    def start(self):
+    def start(self, pw=100):
         self.__forward()
-        self.__speed(100)
+        self.__speed(pw)
 
     def stop(self):
         self.ch1.end()
