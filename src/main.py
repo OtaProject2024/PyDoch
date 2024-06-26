@@ -40,18 +40,19 @@ def bt():
 def main():
     global flg
 
-    t1 = threading.Thread(target=bt)
-    t1.start()
-    while not flg:
-        pass
-    t2 = threading.Thread(target=dc)
-    t3 = threading.Thread(target=sv)
-    t2.start()
-    t3.start()
+    while True:
+        t1 = threading.Thread(target=bt)
+        t1.start()
+        while not flg:
+            pass
+        t2 = threading.Thread(target=dc)
+        t3 = threading.Thread(target=sv)
+        t2.start()
+        t3.start()
 
-    t1.join()
-    t2.join()
-    t3.join()
+        t1.join()
+        t2.join()
+        t3.join()
 
 
 if __name__ == '__main__':
