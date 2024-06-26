@@ -43,7 +43,9 @@ class Channel:
 
     # Wait for change
     def wait(self):
-        GPIO.wait_for_edge(self.channel, GPIO.FALLING)
+        while True:
+            if GPIO.input(self.channel) == 0:
+                break
 
     # Deactivate channel
     def end(self):

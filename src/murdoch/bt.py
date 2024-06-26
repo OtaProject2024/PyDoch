@@ -3,7 +3,7 @@ from ._gpioutils import Channel
 
 # Controlling button
 class Button:
-    def __init__(self, ch=15):
+    def __init__(self, ch=24):
         self.ch = Channel(ch, io=True, pull=True)
         self.state = False
 
