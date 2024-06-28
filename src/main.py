@@ -70,10 +70,7 @@ def main():
             logging.debug("Stop thread SVMotor")
     except KeyboardInterrupt:
         logging.info("Stop processing")
-        if flg:
-            sys.exit(1)
-        else:
-            sys.exit(0)
+        sys.exit(0)
 
 
 def log(lv="DEBUG"):
