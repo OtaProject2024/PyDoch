@@ -1,3 +1,5 @@
+import time
+
 from ._gpioutils import Channel
 
 
@@ -36,6 +38,12 @@ class DCMotor:
     def start(self, pw=100):
         self.__forward()
         self.__speed(pw)
+
+    def run(self):
+        time.sleep(1.0)
+        self.__backward()
+        time.sleep(1.0)
+        self.__forward()
 
     def stop(self):
         self.ch1.end()

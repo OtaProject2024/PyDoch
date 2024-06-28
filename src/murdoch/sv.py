@@ -1,4 +1,5 @@
 import time
+
 from ._gpioutils import Channel
 
 
