@@ -40,9 +40,9 @@ class DCMotor:
         self.__speed(pw)
 
     def run(self):
-        time.sleep(1.0)
+        time.sleep(0.3)
         self.__backward()
-        time.sleep(1.0)
+        time.sleep(0.3)
         self.__forward()
 
     def stop(self):
