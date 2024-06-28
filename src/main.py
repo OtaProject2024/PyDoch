@@ -47,16 +47,17 @@ def main():
     log()
     logging.info("Start processing")
 
-    t1 = threading.Thread(target=bt)
-    t2 = threading.Thread(target=dc)
-    t3 = threading.Thread(target=sv)
-
     try:
         while True:
+            t1 = threading.Thread(target=bt)
+            t2 = threading.Thread(target=dc)
+            t3 = threading.Thread(target=sv)
+
             t1.start()
             logging.debug("Start thread Button")
             while not flg:
                 pass
+
             t2.start()
             logging.debug("Start thread DCMotor")
             t3.start()
