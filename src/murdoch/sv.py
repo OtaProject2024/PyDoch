@@ -28,3 +28,15 @@ class SVMotor:
 
     def stop(self):
         self.ch.end()
+
+    def Right(self): #Turn to the right. (When it touches a wall or something)
+        self.__angle(self.angle)
+        time.sleep(4)
+    
+    def left(self): #Turn to the left. (When it touches a wall or something)
+        self.__angle(self.angle * -1)
+        time.sleep(4)
+
+#runメソッドで引数を受け取るのはどうしようか悩み中です
+#とりあえず下二つのRightとleftだけ追加
+#加速度センサで壁当たったのが感知できそうならこの二つはそのまま使えるのかな
