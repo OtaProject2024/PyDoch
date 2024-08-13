@@ -1,0 +1,13 @@
+[Unit]
+Description=Python script for controlling "Murdoch".
+After=network.target
+
+[Service]
+Type=simple
+User=otapro1
+ExecStart=main.py
+WorkingDirectory=/home/otapro1/PyDoch/src
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

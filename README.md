@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a set of Python libraries to control "Murdock (Prototype 01)" developed by Ota Project 2024.
+This is a set of Python libraries to control "Murdock (Prototype 02)" developed by Ota Project 2024.
 
 ## Dependencies
 
@@ -11,17 +11,25 @@ Ensure these dependencies are installed on your Raspberry Pi:
 
 - RPi.GPIO: Used for controlling the GPIO pins of the Raspberry Pi.
 - PyYAML: Loading configuration files.
+- adafruit_bno055: Used for controlling the bno055 sensor.
 
 You can install these dependencies:
 
 ```
-sudo apt install python3-rpi.gpio
-sudo apt install python3-yaml
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+```
+pip install python3-rpi.gpio
+pip install python3-yaml
+pip install adafruit_bno055
 ```
 
 ## Configuration
 
-PyDoch uses the `src/config.yaml` file for configuration settings.
+PyDoch uses the `conf/config.yaml` file for configuration settings.
+
 Here is an example of a `config.yaml` file:
 
 ```yaml
@@ -33,7 +41,14 @@ components:
     in1_channel: 22
     in2_channel: 27
     power: 100
+    save_power: 50
   sv_motor:
     channel: 18
     angle: 60
+  bno055_sensor:
+    acceleration_threshold: 0.1
+    magnetic_threshold: 50
+  action:
+    normal_delay: 10
+    sensor_interrupt_delay: 20
 ```
