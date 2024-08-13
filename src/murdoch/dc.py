@@ -39,7 +39,13 @@ class DCMotor:
         self.__forward()
         self.__speed(pw)
 
-    def run(self):
+    def run(self, state=0):
+        if state == 0:
+            self.__speed(100)
+        elif state == 1 or state == 2:
+            self.__speed(50)
+        elif state == 3:
+            self.__speed(0)
         time.sleep(0.3)
         self.__backward()
         time.sleep(0.3)
