@@ -44,11 +44,11 @@ class DCMotor:
 
     def run(self, state=0):
         if state == 0:
-            self.__speed(self.power)
-        elif state == 1 or state == 2:
-            self.__speed(self.save_power)
-        elif state == 3:
             self.__speed(0)
+        elif state == 1:
+            self.__speed(self.power)
+        elif state == 2 or state == 3:
+            self.__speed(self.save_power)
 
         time.sleep(0.3)
         self.__backward()
