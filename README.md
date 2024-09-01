@@ -30,6 +30,12 @@ pip install adafruit_bno055
 
 PyDoch uses the `conf/config.yaml` file for configuration settings.
 
+You can create a configuration file:
+```
+cd conf
+sh setup.sh
+```
+
 Here is an example of a `config.yaml` file:
 
 ```yaml
