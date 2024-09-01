@@ -130,24 +130,23 @@ class Main:
         finally:
             signal.alarm(0)
 
+    def stop(self, sig, frame):
+        if sig == signal.SIGINT:
+            self.logger.info("Received signal: SIGINT")
+        elif sig == signal.SIGTERM:
+            self.logger.info("Received signal: SIGTERM")
+        elif sig == signal.SIGALRM:
+            self.logger.info("Received signal: SIGALRM")
 
-def stop(self, sig, frame):
-    if sig == signal.SIGINT:
-        self.logger.info("Received signal: SIGINT")
-    elif sig == signal.SIGTERM:
-        self.logger.info("Received signal: SIGTERM")
-    elif sig == signal.SIGALRM:
-        self.logger.info("Received signal: SIGALRM")
-
-    if self.flg:
-        self.flg = False
-    else:
-        self.flg = True
+        if self.flg:
+            self.flg = False
+        else:
+            self.flg = True
+            time.sleep(0.1)
+            self.flg = False
         time.sleep(0.1)
-        self.flg = False
-    time.sleep(0.1)
-    self.logger.info("Stop processing")
-    sys.exit()
+        self.logger.info("Stop processing")
+        sys.exit()
 
 
 if __name__ == '__main__':
