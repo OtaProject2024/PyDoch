@@ -89,9 +89,11 @@ class Main:
             if acceleration:
                 self.logger.info("Sensor state: STATIONARY")
                 self.state = random.randint(0, 3)
+                self.logger.debug(f"state: {self.state}")
                 time.sleep(interrupt_delay)
             else:
-                self.state = random.randint(0, 3)
+                self.state = random.randint(2, 3)
+                self.logger.debug(f"state: {self.state}")
                 time.sleep(delay)
 
     def run(self):
