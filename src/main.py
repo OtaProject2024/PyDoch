@@ -1,4 +1,5 @@
 import logging
+import random
 import signal
 import sys
 import threading
@@ -14,6 +15,7 @@ class Main:
         self.logger = None
         self.config = None
         self.flg = False
+        self.state = 0
 
         self.__sigs()
         self.__conf()
@@ -54,10 +56,12 @@ class Main:
             self.config["components"]["dc_motor"]["ref_channel"],
             self.config["components"]["dc_motor"]["in1_channel"],
             self.config["components"]["dc_motor"]["in2_channel"],
+            self.config["components"]["dc_motor"]["power"],
+            self.config["components"]["dc_motor"]["save_power"],
         )
-        d.start(self.config["components"]["dc_motor"]["power"])
+        d.start()
         while self.flg:
-            d.run()
+            d.run(self.state)
         d.stop()
 
     def __sv(self):
@@ -67,6 +71,12 @@ class Main:
             s.run()
         s.stop()
 
+    def __rand(self):
+        delay = self.config["components"]["random"]["delay"]
+        while self.flg:
+            self.state = random.randint(0, 3)
+            time.sleep(delay)
+
     def run(self):
         self.logger.info("Start processing")
         try:
@@ -74,6 +84,7 @@ class Main:
                 t1 = threading.Thread(target=self.__bt, daemon=True)
                 t2 = threading.Thread(target=self.__dc, daemon=True)
                 t3 = threading.Thread(target=self.__sv, daemon=True)
+                t5 = threading.Thread(target=self.__rand, daemon=True)
 
                 t1.start()
                 self.logger.debug("Start thread: Button")
@@ -84,6 +95,8 @@ class Main:
                 self.logger.debug("Start thread: DCMotor")
                 t3.start()
                 self.logger.debug("Start thread: SVMotor")
+                t5.start()
+                self.logger.debug("Start thread: Random")
 
                 t1.join()
                 self.logger.debug("Stop thread: Button")
@@ -91,6 +104,8 @@ class Main:
                 self.logger.debug("Stop thread: DCMotor")
                 t3.join()
                 self.logger.debug("Stop thread: SVMotor")
+                t5.join()
+                self.logger.debug("Stop thread: Random")
         except Exception as e:
             self.logger.error(e)
         finally:
