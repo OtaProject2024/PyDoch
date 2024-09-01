@@ -13,6 +13,10 @@ components:
   sv_motor:
     channel: 18
     angle: 60
-  random:
-    delay: 10
+  bno055_sensor:
+    acceleration_threshold: 0.1
+    magnetic_threshold: 50
+  action:
+    normal_delay: 10
+    sensor_interrupt_delay: 20
 EOF
