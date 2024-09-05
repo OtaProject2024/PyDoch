@@ -9,9 +9,10 @@ This is a set of Python libraries to control "Murdock (Prototype 02)" developed 
 PyDoch relies on several external libraries to function properly.
 Ensure these dependencies are installed on your Raspberry Pi:
 
-- RPi.GPIO: Used for controlling the GPIO pins of the Raspberry Pi.
 - PyYAML: Loading configuration files.
+- RPi.GPIO: Used for controlling the GPIO pins of the Raspberry Pi.
 - adafruit_bno055: Used for controlling the bno055 sensor.
+- board: Specify board-specific pins.
 
 You can install these dependencies:
 
@@ -21,8 +22,8 @@ source .venv/bin/activate
 ```
 
 ```
-pip install python3-rpi.gpio
-pip install python3-yaml
+pip install pyyaml
+pip install rpi.gpio
 pip install adafruit-circuitpython-bno055
 pip install board
 ```
