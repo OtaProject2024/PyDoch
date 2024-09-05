@@ -38,7 +38,7 @@ class BNO055Sensor:
         try:
             for i in range(self.frequency):
                 magnetic = self.__magnetic()
-                m.append(sum(m ** 2 for m in magnetic) ** 0.5)
+                m.append(sum(b ** 2 for b in magnetic) ** 0.5)
                 time.sleep(0.1)
             magnitude = sum(m) / len(m)
             return magnitude > self.magnetic_threshold, magnitude
