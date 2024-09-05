@@ -23,7 +23,8 @@ source .venv/bin/activate
 ```
 pip install python3-rpi.gpio
 pip install python3-yaml
-pip install adafruit_bno055
+pip install adafruit-circuitpython-bno055
+pip install board
 ```
 
 ## Configuration

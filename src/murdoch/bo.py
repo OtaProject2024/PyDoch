@@ -8,8 +8,7 @@ class BNO055Sensor:
         self.acceleration_threshold = acc_threshold
         self.magnetic_threshold = mag_threshold
 
-        self.sensor = adafruit_bno055.BNO055(board.I2C())
-        self.sensor.mode = adafruit_bno055.MODE_ACCEL_MAG
+        self.sensor = adafruit_bno055.BNO055_I2C(board.I2C())
 
     # Get acceleration
     def __acceleration(self):

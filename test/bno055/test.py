@@ -1,13 +1,13 @@
+import time
+
 import adafruit_bno055
 import board
-import time
 
 
 # Controlling BNO055Sensor
 class BNO055Sensor:
     def __init__(self):
-        self.sensor = adafruit_bno055.BNO055(board.I2C())
-        self.sensor.mode = adafruit_bno055.MODE_ACCEL_MAG
+        self.sensor = adafruit_bno055.BNO055_I2C(board.I2C())
 
     # Get acceleration
     def __acceleration(self):
@@ -19,13 +19,22 @@ class BNO055Sensor:
 
     def is_stationary(self):
         acceleration = self.__acceleration()
-        magnitude = sum(a ** 2 for a in acceleration) ** 0.5
-        print(magnitude)
+        print(acceleration)
+        try:
+            magnitude = sum(a ** 2 for a in acceleration) ** 0.5
+            print(f"acceleration: {magnitude}")
+        except TypeError:
+            print("acceleration: TypeError")
 
     def is_magnet_contact(self):
         magnetic = self.__magnetic()
-        magnitude = sum(m ** 2 for m in magnetic) ** 0.5
-        print(magnitude)
+        print(magnetic)
+        try:
+            magnitude = sum(m ** 2 for m in magnetic) ** 0.5
+            print(f"magnetic: {magnitude}")
+        except TypeError:
+            print("magnetic: TypeError")
+
 
 if __name__ == '__main__':
     sensor = BNO055Sensor()
