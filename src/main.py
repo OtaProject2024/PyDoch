@@ -1,4 +1,5 @@
 import logging
+import platform
 import random
 import signal
 import sys
@@ -43,6 +44,29 @@ class Main:
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
+    def __info(self):
+        print("- PyDoch -")
+        print("Program for controlling \"Murdoch\".")
+        print()
+
+        print("System Information")
+        print(f"System: {platform.system()}")
+        print(f"Node Name: {platform.node()}")
+        print(f"Release: {platform.release()}")
+        print(f"Version: {platform.version()}")
+        print(f"Machine: {platform.machine()}")
+        print(f"Processor: {platform.processor()}")
+        print(f"Architecture: {platform.architecture()}")
+        print()
+
+        print("Python Version:")
+        print(sys.version)
+        print()
+
+        print("config")
+        print(yaml.dump(self.config, sort_keys=False, allow_unicode=True))
+        print()
+
     def __bt(self):
         b = murdoch.Button(self.config["components"]["button"]["channel"])
         self.flg = b.run()
@@ -68,35 +92,39 @@ class Main:
         s = murdoch.SVMotor(self.config["components"]["sv_motor"]["channel"])
         s.start(self.config["components"]["sv_motor"]["angle"])
         while self.flg:
-            s.run()
+            s.run(self.state)
         s.stop()
 
     def __bo(self):
         delay = self.config["components"]["action"]["normal_delay"]
         interrupt_delay = self.config["components"]["action"]["sensor_interrupt_delay"]
         o = murdoch.BNO055Sensor(
+            self.config["components"]["bno055_sensor"]["frequency"],
             self.config["components"]["bno055_sensor"]["acceleration_threshold"],
             self.config["components"]["bno055_sensor"]["magnetic_threshold"]
         )
         while self.flg:
-            magnetic, magnetic_magnitude = o.is_magnet_contact()
+            magnetic, magnetic_magnitude = o.magnet()
             self.logger.debug(f"magnet_magnitude: {magnetic_magnitude}")
             if magnetic:
+                self.state = 1
                 self.logger.info("Sensor state: PULLED")
-
-            acceleration, acceleration_magnitude = o.is_stationary()
-            self.logger.debug(f"acceleration_magnitude: {acceleration_magnitude}")
-            if acceleration:
-                self.logger.info("Sensor state: STATIONARY")
-                self.state = random.randint(0, 3)
-                self.logger.debug(f"state: {self.state}")
-                time.sleep(interrupt_delay)
-            else:
-                self.state = random.randint(2, 3)
-                self.logger.debug(f"state: {self.state}")
                 time.sleep(delay)
+            else:
+                acceleration, acceleration_magnitude = o.stationary()
+                self.logger.debug(f"acceleration_magnitude: {acceleration_magnitude}")
+                if acceleration:
+                    self.logger.info("Sensor state: STATIONARY")
+                    self.state = random.randint(2, 3)
+                    self.logger.debug(f"state: {self.state}")
+                    time.sleep(interrupt_delay)
+                else:
+                    self.state = random.randint(0, 3)
+                    self.logger.debug(f"state: {self.state}")
+                    time.sleep(delay)
 
     def run(self):
+        self.__info()
         self.logger.info("Start processing")
         try:
             while True:

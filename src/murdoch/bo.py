@@ -1,10 +1,13 @@
+import time
+
 import adafruit_bno055
 import board
 
 
 # Controlling BNO055Sensor
 class BNO055Sensor:
-    def __init__(self, acc_threshold, mag_threshold):
+    def __init__(self, freq, acc_threshold, mag_threshold):
+        self.frequency = freq
         self.acceleration_threshold = acc_threshold
         self.magnetic_threshold = mag_threshold
 
@@ -18,12 +21,26 @@ class BNO055Sensor:
     def __magnetic(self):
         return self.sensor.magnetic
 
-    def is_stationary(self):
-        acceleration = self.__acceleration()
-        magnitude = sum(a ** 2 for a in acceleration) ** 0.5
-        return magnitude < self.acceleration_threshold, magnitude
+    def stationary(self):
+        s = []
+        try:
+            for i in range(self.frequency):
+                acceleration = self.__acceleration()
+                s.append(sum(a ** 2 for a in acceleration) ** 0.5)
+                time.sleep(0.1)
+            magnitude = sum(s) / len(s)
+            return magnitude < self.acceleration_threshold, magnitude
+        except TypeError:
+            return False, 0
 
-    def is_magnet_contact(self):
-        magnetic = self.__magnetic()
-        magnitude = sum(m ** 2 for m in magnetic) ** 0.5
-        return magnitude > self.magnetic_threshold, magnitude
+    def magnet(self):
+        m = []
+        try:
+            for i in range(self.frequency):
+                magnetic = self.__magnetic()
+                m.append(sum(m ** 2 for m in magnetic) ** 0.5)
+                time.sleep(0.1)
+            magnitude = sum(m) / len(m)
+            return magnitude > self.magnetic_threshold, magnitude
+        except TypeError:
+            return False, 0

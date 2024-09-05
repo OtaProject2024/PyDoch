@@ -14,9 +14,10 @@ components:
     channel: 18
     angle: 60
   bno055_sensor:
-    acceleration_threshold: 0.1
-    magnetic_threshold: 50
+    frequency: 5
+    acceleration_threshold: 10
+    magnetic_threshold: 500
   action:
-    normal_delay: 10
-    sensor_interrupt_delay: 20
+    normal_delay: 5
+    sensor_interrupt_delay: 10
 EOF

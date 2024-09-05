@@ -17,20 +17,26 @@ class BNO055Sensor:
     def __magnetic(self):
         return self.sensor.magnetic
 
-    def is_stationary(self):
-        acceleration = self.__acceleration()
-        print(acceleration)
+    def stationary(self):
+        s = []
         try:
-            magnitude = sum(a ** 2 for a in acceleration) ** 0.5
+            for i in range(5):
+                acceleration = self.__acceleration()
+                s.append(sum(a ** 2 for a in acceleration) ** 0.5)
+                time.sleep(0.1)
+            magnitude = sum(s) / len(s)
             print(f"acceleration: {magnitude}")
         except TypeError:
             print("acceleration: TypeError")
 
-    def is_magnet_contact(self):
-        magnetic = self.__magnetic()
-        print(magnetic)
+    def magnet(self):
+        m = []
         try:
-            magnitude = sum(m ** 2 for m in magnetic) ** 0.5
+            for i in range(5):
+                magnetic = self.__magnetic()
+                m.append(sum(m ** 2 for m in magnetic) ** 0.5)
+                time.sleep(0.1)
+            magnitude = sum(m) / len(m)
             print(f"magnetic: {magnitude}")
         except TypeError:
             print("magnetic: TypeError")
@@ -39,6 +45,6 @@ class BNO055Sensor:
 if __name__ == '__main__':
     sensor = BNO055Sensor()
     while True:
-        sensor.is_stationary()
-        sensor.is_magnet_contact()
+        sensor.stationary()
+        sensor.magnet()
         time.sleep(1)
