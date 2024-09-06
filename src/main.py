@@ -1,4 +1,5 @@
 import logging
+import os
 import platform
 import random
 import signal
@@ -15,19 +16,16 @@ class Main:
     def __init__(self):
         self.logger = None
         self.config = None
-        self.flg = False
-        self.state = 0
-
         self.__sigs()
         self.__conf()
         self.__log()
 
-    def __sigs(self):
-        signal.signal(signal.SIGINT, self.stop)
-        signal.signal(signal.SIGTERM, self.stop)
-        signal.signal(signal.SIGALRM, self.stop)
+        self.button_state = False
+        self.contact = False
+        self.stationary = False
+        self.action_state = 0
 
-    def __conf(self, path="../conf/config.yaml"):
+    def __conf(self, path=os.path.join("..", "conf", "config.yaml")):
         with open(path, 'r') as file:
             self.config = yaml.safe_load(file)
 
@@ -43,6 +41,29 @@ class Main:
         file_handler = logging.FileHandler("murdoch.log")
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
+
+    def __sigs(self):
+        signal.signal(signal.SIGINT, self.stop)
+        signal.signal(signal.SIGTERM, self.stop)
+        signal.signal(signal.SIGALRM, self.stop)
+
+    def stop(self, sig, frame):
+        if sig == signal.SIGINT:
+            self.logger.info("Received signal: SIGINT")
+        elif sig == signal.SIGTERM:
+            self.logger.info("Received signal: SIGTERM")
+        elif sig == signal.SIGALRM:
+            self.logger.info("Received signal: SIGALRM")
+
+        if self.button_state:
+            self.button_state = False
+        else:
+            self.button_state = True
+            time.sleep(0.1)
+            self.button_state = False
+        time.sleep(0.1)
+        self.logger.info("Stop processing")
+        sys.exit()
 
     def __info(self):
         print("- PyDoch -")
@@ -64,12 +85,45 @@ class Main:
         print()
 
     def __bt(self):
-        b = murdoch.Button(self.config["components"]["button"]["channel"])
-        self.flg = b.run()
-        self.logger.info("Button state: ON")
-        self.flg = b.run()
-        self.logger.info("Button state: OFF")
+        b = murdoch.Button(
+            self.config["components"]["button"]["channel"],
+            self.config["components"]["button"]["delay"],
+        )
+        for p in ("ON", "OFF"):
+            self.button_state = b.run()
+            self.logger.info(f"Button state: {p}")
         b.stop()
+
+    def __ac(self):
+        delay = self.config["components"]["action"]["normal_delay"]
+        irq_delay = self.config["components"]["action"]["sensor_interrupt_delay"]
+        while self.button_state:
+            if self.contact:
+                self.action_state = 1
+                self.logger.info("Sensor state: PULLED")
+                time.sleep(delay)
+            else:
+                if self.stationary:
+                    self.logger.info("Sensor state: STATIONARY")
+                    self.action_state = random.randint(2, 3)
+                    self.logger.debug(f"state: {self.action_state}")
+                    time.sleep(irq_delay)
+                else:
+                    self.action_state = random.randint(0, 3)
+                    self.logger.debug(f"state: {self.action_state}")
+                    time.sleep(delay)
+
+    def __bo(self):
+        o = murdoch.BNO055Sensor(
+            self.config["components"]["bno055_sensor"]["frequency"],
+            self.config["components"]["bno055_sensor"]["interval"],
+            self.config["components"]["bno055_sensor"]["magnetic_threshold"],
+            self.config["components"]["bno055_sensor"]["acceleration_threshold"]
+        )
+        while self.button_state:
+            self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
+            self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
+            self.logger.debug(f"acceleration_magnitude: {acc_magnitude}")
 
     def __dc(self):
         d = murdoch.DCMotor(
@@ -80,97 +134,50 @@ class Main:
             self.config["components"]["dc_motor"]["save_power"],
         )
         d.start()
-        while self.flg:
-            d.run(self.state)
+        while self.button_state:
+            d.run(self.action_state)
         d.stop()
 
     def __sv(self):
-        s = murdoch.SVMotor(self.config["components"]["sv_motor"]["channel"])
-        s.start(self.config["components"]["sv_motor"]["angle"])
-        while self.flg:
-            s.run(self.state)
-        s.stop()
-
-    def __bo(self):
-        delay = self.config["components"]["action"]["normal_delay"]
-        interrupt_delay = self.config["components"]["action"]["sensor_interrupt_delay"]
-        o = murdoch.BNO055Sensor(
-            self.config["components"]["bno055_sensor"]["frequency"],
-            self.config["components"]["bno055_sensor"]["acceleration_threshold"],
-            self.config["components"]["bno055_sensor"]["magnetic_threshold"]
+        s = murdoch.SVMotor(
+            self.config["components"]["sv_motor"]["channel"],
+            self.config["components"]["sv_motor"]["frequency"],
+            self.config["components"]["sv_motor"]["angle"]
         )
-        while self.flg:
-            magnetic, magnetic_magnitude = o.magnet()
-            self.logger.debug(f"magnet_magnitude: {magnetic_magnitude}")
-            if magnetic:
-                self.state = 1
-                self.logger.info("Sensor state: PULLED")
-                time.sleep(delay)
-            else:
-                acceleration, acceleration_magnitude = o.stationary()
-                self.logger.debug(f"acceleration_magnitude: {acceleration_magnitude}")
-                if acceleration:
-                    self.logger.info("Sensor state: STATIONARY")
-                    self.state = random.randint(2, 3)
-                    self.logger.debug(f"state: {self.state}")
-                    time.sleep(interrupt_delay)
-                else:
-                    self.state = random.randint(0, 3)
-                    self.logger.debug(f"state: {self.state}")
-                    time.sleep(delay)
+        s.start()
+        while self.button_state:
+            s.run(self.action_state)
+        s.stop()
 
     def run(self):
         self.__info()
         self.logger.info("Start processing")
         try:
             while True:
-                t1 = threading.Thread(target=self.__bt, daemon=True)
-                t2 = threading.Thread(target=self.__bo, daemon=True)
-                t3 = threading.Thread(target=self.__dc, daemon=True)
-                t4 = threading.Thread(target=self.__sv, daemon=True)
+                threads = [
+                    threading.Thread(target=self.__bt, daemon=True, name="Button control"),
+                    threading.Thread(target=self.__ac, daemon=True, name="Action control"),
+                    threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
+                    threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
+                    threading.Thread(target=self.__sv, daemon=True, name="SVMotor control")
+                ]
 
-                t1.start()
-                self.logger.debug("Start thread: Button")
-                while not self.flg:
+                threads[0].start()
+                self.logger.debug(f"Start thread: {threads[0].name}")
+                while not self.button_state:
                     pass
 
-                t2.start()
-                self.logger.debug("Start thread: Sensor")
-                t3.start()
-                self.logger.debug("Start thread: DCMotor")
-                t4.start()
-                self.logger.debug("Start thread: SVMotor")
+                for thread in threads[1:]:
+                    thread.start()
+                    self.logger.debug(f"Start thread: {thread.name}")
 
-                t1.join()
-                self.logger.debug("Stop thread: Button")
-                t2.join()
-                self.logger.debug("Stop thread: Sensor")
-                t3.join()
-                self.logger.debug("Stop thread: DCMotor")
-                t4.join()
-                self.logger.debug("Stop thread: SVMotor")
+                for thread in threads:
+                    thread.join()
+                    self.logger.debug(f"Stop thread: {thread.name}")
         except Exception as e:
             self.logger.error(e)
         finally:
             signal.alarm(0)
-
-    def stop(self, sig, frame):
-        if sig == signal.SIGINT:
-            self.logger.info("Received signal: SIGINT")
-        elif sig == signal.SIGTERM:
-            self.logger.info("Received signal: SIGTERM")
-        elif sig == signal.SIGALRM:
-            self.logger.info("Received signal: SIGALRM")
-
-        if self.flg:
-            self.flg = False
-        else:
-            self.flg = True
-            time.sleep(0.1)
-            self.flg = False
-        time.sleep(0.1)
-        self.logger.info("Stop processing")
-        sys.exit()
 
 
 if __name__ == '__main__':
