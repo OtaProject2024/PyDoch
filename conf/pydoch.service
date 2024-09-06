@@ -1,12 +1,11 @@
 [Unit]
-Description=Python script for controlling "Murdoch".
+Description=Python script for controlling Murdoch
 After=network.target
 
 [Service]
-Type=simple
-User=otapro1
-ExecStart=main.py
-WorkingDirectory=/home/otapro1/PyDoch/src
+User=ota
+WorkingDirectory=/home/ota/PyDoch/src/
+ExecStart=/home/ota/PyDoch/.venv/bin/python /home/ota/PyDoch/src/main.py
 Restart=on-failure
 
 [Install]

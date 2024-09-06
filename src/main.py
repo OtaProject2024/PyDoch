@@ -149,6 +149,14 @@ class Main:
             s.run(self.action_state)
         s.stop()
 
+    def __so(self):
+        u = murdoch.Sound(
+            self.config["components"]["sound"]["file"],
+            self.config["components"]["sound"]["volume"],
+        )
+        while self.button_state:
+            u.run(self.contact)
+
     def run(self):
         self.__info()
         self.logger.info("Start processing")
@@ -159,7 +167,8 @@ class Main:
                     threading.Thread(target=self.__ac, daemon=True, name="Action control"),
                     threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
                     threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
-                    threading.Thread(target=self.__sv, daemon=True, name="SVMotor control")
+                    threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
+                    threading.Thread(target=self.__so, daemon=True, name="Sound control"),
                 ]
 
                 threads[0].start()

@@ -37,3 +37,11 @@ You can create a configuration file:
 cd conf
 sh setup.sh
 ```
+
+```
+sudo cp pydoch.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable pydoch.service
+sudo systemctl start pydoch.service
+sudo systemctl status pydoch.service
+```
