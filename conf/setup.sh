@@ -24,6 +24,6 @@ components:
     frequency: 50
     angle: 60
   sound:
-    file: a.wav
+    file: "tureta.wav"
     volume: 1.0
 EOF

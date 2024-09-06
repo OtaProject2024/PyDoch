@@ -1,5 +1,7 @@
 import os
 import time
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 import pygame.mixer as mixer
 

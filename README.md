@@ -26,6 +26,7 @@ pip install pyyaml
 pip install rpi.gpio
 pip install adafruit-circuitpython-bno055
 pip install board
+pip install pygame
 ```
 
 ## Configuration
