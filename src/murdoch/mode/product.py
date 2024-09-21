@@ -14,6 +14,7 @@ class Product:
         self.logger = log
         self.__sigs()
 
+        self.lock = threading.Lock()
         self.button_state = False
         self.contact = False
         self.stationary = False
@@ -34,12 +35,13 @@ class Product:
         elif sig == signal.SIGALRM:
             self.logger.info("Received signal: SIGALRM")
 
-        if self.button_state:
-            self.button_state = False
-        else:
-            self.button_state = True
-            time.sleep(0.1)
-            self.button_state = False
+        with self.lock:
+            if self.button_state:
+                self.button_state = False
+            else:
+                self.button_state = True
+                time.sleep(0.1)
+                self.button_state = False
         time.sleep(0.1)
         self.logger.info("Stop processing")
         sys.exit()
@@ -51,7 +53,8 @@ class Product:
             self.config["components"]["button"]["delay"],
         )
         for p in ("ON", "OFF"):
-            self.button_state = b.run()
+            with self.lock:
+                self.button_state = b.run()
             self.logger.info(f"Button state: {p}")
         b.stop()
 
@@ -61,17 +64,20 @@ class Product:
         irq_delay = self.config["operation"]["action"]["sensor_interrupt_delay"]
         while self.button_state:
             if self.contact:
-                self.action_state = 1
+                with self.lock:
+                    self.action_state = 1
                 self.logger.info("Sensor state: PULLED")
                 time.sleep(delay)
             else:
                 if self.stationary:
                     self.logger.info("Sensor state: STATIONARY")
-                    self.action_state = random.randint(2, 3)
+                    with self.lock:
+                        self.action_state = random.randint(2, 3)
                     self.logger.debug(f"state: {self.action_state}")
                     time.sleep(irq_delay)
                 else:
-                    self.action_state = random.randint(0, 3)
+                    with self.lock:
+                        self.action_state = random.randint(0, 3)
                     self.logger.debug(f"state: {self.action_state}")
                     time.sleep(delay)
 
@@ -84,7 +90,8 @@ class Product:
             self.config["components"]["bno055_sensor"]["acceleration_threshold"]
         )
         while self.button_state:
-            self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
+            with self.lock:
+                self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
             self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
             self.logger.debug(f"acceleration_magnitude: {acc_magnitude}")
 
