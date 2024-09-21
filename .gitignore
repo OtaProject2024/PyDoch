@@ -13,5 +13,5 @@ venv
 .vscode/
 
 # project
-config.yaml
-murdoch.log
+conf/config.yaml
+log/murdoch_*.log

@@ -10,7 +10,7 @@ import pygame.mixer as mixer
 class Sound:
     def __init__(self, file="a.wav", val=1.0):
         mixer.init()
-        self.sound = mixer.Sound(os.path.join("..", "assets", "sounds", file))
+        self.sound = mixer.Sound(os.path.join("..", "..", "..", "assets", "sounds", file))
         self.sound.set_volume(val)
 
         self.played = False

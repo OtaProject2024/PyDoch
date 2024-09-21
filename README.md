@@ -13,6 +13,7 @@ Ensure these dependencies are installed on your Raspberry Pi:
 - RPi.GPIO: Used for controlling the GPIO pins of the Raspberry Pi.
 - adafruit_bno055: Used for controlling the bno055 sensor.
 - board: Specify board-specific pins.
+- PyGame: Sound Control.
 
 You can install these dependencies:
 

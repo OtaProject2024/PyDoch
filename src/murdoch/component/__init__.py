@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 
-# Component modules
+# Components
 from .bt import Button
 from .bo import BNO055Sensor
 from .dc import DCMotor

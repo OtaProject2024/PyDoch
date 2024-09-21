@@ -1,193 +1,94 @@
+import datetime
 import logging
 import os
 import platform
-import random
-import signal
 import sys
-import threading
-import time
 
 import yaml
 
-import murdoch
+from murdoch import mode
 
 
-class Main:
+class Boot:
     def __init__(self):
-        self.logger = None
+        self.mode = None
         self.config = None
-        self.__sigs()
+        self.logger = None
+        self.__mode()
         self.__conf()
         self.__log()
 
-        self.button_state = False
-        self.contact = False
-        self.stationary = False
-        self.action_state = 0
+    # Mode selection from command line arguments
+    def __mode(self):
+        mode_list = ["PRODUCT", "TEST"]
+        args = sys.argv
+        if len(args) > 1:
+            mode_arg = args[1].upper()
+            if mode_arg in mode_list:
+                self.mode = mode_arg
+            else:
+                print(f"Warning: '{args[1]}' is not a valid mode. Defaulting to TEST.")
+                self.mode = mode_list[1]
+        else:
+            self.mode = mode_list[0]
 
+    # Loading config file
     def __conf(self, path=os.path.join("..", "conf", "config.yaml")):
-        with open(path, 'r') as file:
-            self.config = yaml.safe_load(file)
+        try:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Config file not found: {path}")
+            with open(path, 'r') as file:
+                self.config = yaml.safe_load(file)
+        except FileNotFoundError as fnf_error:
+            print(fnf_error)
+            with open(os.path.join("..", "conf", "default_config.yaml"), 'r') as file:
+                self.config = yaml.safe_load(file)
 
+    # Logger setup
     def __log(self):
         self.logger = logging.getLogger("Murdoch")
         self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter("[%(levelname).4s] %(name)s:%(asctime)s - %(message)s")
+        formatter = None
+        if self.mode == "PRODUCT":
+            formatter = logging.Formatter("[%(levelname).4s] %(name)s:%(asctime)s - %(message)s")
+        elif self.mode == "TEST":
+            formatter = logging.Formatter("[%(levelname).4s] %(name)s(TEST):%(asctime)s - %(message)s")
 
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(formatter)
         self.logger.addHandler(stream_handler)
 
-        file_handler = logging.FileHandler("murdoch.log")
+        name = "murdoch_" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".log"
+        file_handler = logging.FileHandler(os.path.join("..", "log", name))
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
-    def __sigs(self):
-        signal.signal(signal.SIGINT, self.stop)
-        signal.signal(signal.SIGTERM, self.stop)
-        signal.signal(signal.SIGALRM, self.stop)
-
-    def stop(self, sig, frame):
-        if sig == signal.SIGINT:
-            self.logger.info("Received signal: SIGINT")
-        elif sig == signal.SIGTERM:
-            self.logger.info("Received signal: SIGTERM")
-        elif sig == signal.SIGALRM:
-            self.logger.info("Received signal: SIGALRM")
-
-        if self.button_state:
-            self.button_state = False
-        else:
-            self.button_state = True
-            time.sleep(0.1)
-            self.button_state = False
-        time.sleep(0.1)
-        self.logger.info("Stop processing")
-        sys.exit()
-
+    # Outputs system information
     def __info(self):
-        print("- PyDoch -")
-        print("Program for controlling \"Murdoch\".")
-        print()
-
-        print("SYSTEM INFORMATION")
-        print(f"system: {platform.system()}")
-        print(f"node name: {platform.node()}")
-        print(f"release: {platform.release()}")
-        print(f"version: {platform.version()}")
-        print(f"machine: {platform.machine()}")
-        print(f"architecture: {platform.architecture()}")
-        print(f"python: {sys.version}")
-        print()
-
-        print("CONFIG")
-        print(yaml.dump(self.config, sort_keys=False, allow_unicode=True))
-        print()
-
-    def __bt(self):
-        b = murdoch.Button(
-            self.config["components"]["button"]["channel"],
-            self.config["components"]["button"]["delay"],
+        print(
+            f"- PyDoch ({self.mode} MODE) -\n"
+            "Program for controlling Murdoch.\n\n"
+            "SYSTEM INFORMATION\n"
+            f"system: {platform.system()}\n"
+            f"node name: {platform.node()}\n"
+            f"release: {platform.release()}\n"
+            f"version: {platform.version()}\n"
+            f"machine: {platform.machine()}\n"
+            f"architecture: {platform.architecture()[0]}\n"
+            f"python: {sys.version}\n\n"
+            "CONFIG\n" +
+            yaml.dump(self.config, sort_keys=False, allow_unicode=True) +
+            "\n"
         )
-        for p in ("ON", "OFF"):
-            self.button_state = b.run()
-            self.logger.info(f"Button state: {p}")
-        b.stop()
 
-    def __ac(self):
-        delay = self.config["components"]["action"]["normal_delay"]
-        irq_delay = self.config["components"]["action"]["sensor_interrupt_delay"]
-        while self.button_state:
-            if self.contact:
-                self.action_state = 1
-                self.logger.info("Sensor state: PULLED")
-                time.sleep(delay)
-            else:
-                if self.stationary:
-                    self.logger.info("Sensor state: STATIONARY")
-                    self.action_state = random.randint(2, 3)
-                    self.logger.debug(f"state: {self.action_state}")
-                    time.sleep(irq_delay)
-                else:
-                    self.action_state = random.randint(0, 3)
-                    self.logger.debug(f"state: {self.action_state}")
-                    time.sleep(delay)
-
-    def __bo(self):
-        o = murdoch.BNO055Sensor(
-            self.config["components"]["bno055_sensor"]["frequency"],
-            self.config["components"]["bno055_sensor"]["interval"],
-            self.config["components"]["bno055_sensor"]["magnetic_threshold"],
-            self.config["components"]["bno055_sensor"]["acceleration_threshold"]
-        )
-        while self.button_state:
-            self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
-            self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
-            self.logger.debug(f"acceleration_magnitude: {acc_magnitude}")
-
-    def __dc(self):
-        d = murdoch.DCMotor(
-            self.config["components"]["dc_motor"]["ref_channel"],
-            self.config["components"]["dc_motor"]["in1_channel"],
-            self.config["components"]["dc_motor"]["in2_channel"],
-            self.config["components"]["dc_motor"]["power"],
-            self.config["components"]["dc_motor"]["save_power"],
-        )
-        d.start()
-        while self.button_state:
-            d.run(self.action_state)
-        d.stop()
-
-    def __sv(self):
-        s = murdoch.SVMotor(
-            self.config["components"]["sv_motor"]["channel"],
-            self.config["components"]["sv_motor"]["frequency"],
-            self.config["components"]["sv_motor"]["angle"]
-        )
-        s.start()
-        while self.button_state:
-            s.run(self.action_state)
-        s.stop()
-
-    def __so(self):
-        u = murdoch.Sound(
-            self.config["components"]["sound"]["file"],
-            self.config["components"]["sound"]["volume"],
-        )
-        while self.button_state:
-            u.run(self.contact)
-
+    # Main thread calls
     def run(self):
         self.__info()
-        self.logger.info("Start processing")
-        try:
-            while True:
-                threads = [
-                    threading.Thread(target=self.__bt, daemon=True, name="Button control"),
-                    threading.Thread(target=self.__ac, daemon=True, name="Action control"),
-                    threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
-                    threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
-                    threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
-                    threading.Thread(target=self.__so, daemon=True, name="Sound control"),
-                ]
-
-                threads[0].start()
-                self.logger.debug(f"Start thread: {threads[0].name}")
-                while not self.button_state:
-                    pass
-
-                for thread in threads[1:]:
-                    thread.start()
-                    self.logger.debug(f"Start thread: {thread.name}")
-
-                for thread in threads:
-                    thread.join()
-                    self.logger.debug(f"Stop thread: {thread.name}")
-        except Exception as e:
-            self.logger.error(e)
-        finally:
-            signal.alarm(0)
+        if self.mode == "PRODUCT":
+            mode.Product(self.config, self.logger).run()
+        elif self.mode == "TEST":
+            mode.Test(self.config, self.logger).run()
 
 
 if __name__ == '__main__':
-    Main().run()
+    Boot().run()

@@ -1,5 +1,3 @@
-import time
-
 import RPi.GPIO as GPIO
 
 
@@ -52,17 +50,3 @@ class Channel:
         if self.pwm is not None:
             self.pwm.stop()
         GPIO.cleanup(self.channel)
-
-
-# Controlling loop processing
-class Loop:
-    # Specify time period
-    def __init__(self, period=30):
-        self.period = period
-        self.start_time = None
-
-    # Start processing
-    def run(self, func, *args):
-        self.start_time = time.time()
-        while (time.time() - self.start_time) < self.period:
-            func(*args)
