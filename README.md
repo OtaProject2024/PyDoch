@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a set of Python libraries to control "Murdock (Prototype 02)" developed by Ota Project 2024.
+This is a set of Python scripts to control "Murdock (Prototype 02)" developed by Ota Project 2024.
 
 ## Dependencies
 
