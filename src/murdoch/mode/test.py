@@ -10,25 +10,6 @@ class Test:
         self.config = conf
         self.logger = log
 
-        self.methods = {
-            "BUTTON": self.__bt(),
-            "SENSOR": self.__bo(),
-            "DCMOTOR": self.__dc(),
-            "SVMOTOR": self.__sv(),
-            "SOUND": self.__so(),
-        }
-
-    # Button thread calls
-    def __bt(self):
-        b = component.Button(
-            self.config["components"]["button"]["channel"],
-            self.config["components"]["button"]["delay"],
-        )
-        for i in range(self.config["test"]["target"]["times"]):
-            button_state = b.run()
-            self.logger.debug(f"Button state: {button_state}")
-        b.stop()
-
     # Sensor thread calls
     def __bo(self):
         o = component.BNO055Sensor(
@@ -88,10 +69,27 @@ class Test:
     # Main thread calls
     def run(self):
         self.logger.info("Start testing")
-        method = self.methods.get(self.config["test"]["target"]["name"].upper, self.__dc())
-        key = [k for k, v in self.methods.items() if v == method]
-        t = threading.Thread(target=method, daemon=True)
-        t.start()
-        self.logger.debug(f"Start thread: {key}")
-        t.join()
-        self.logger.debug(f"Start thread: {key}")
+        threads = [
+            threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
+            threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
+            threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
+            threading.Thread(target=self.__so, daemon=True, name="Sound control"),
+        ]
+
+        n = 2
+        match self.config["test"]["target"]["name"].upper():
+            case "SENSOR":
+                n = 0
+            case "DCMOTOR":
+                n = 1
+            case "SVMOTOR":
+                n = 2
+            case "SOUND":
+                n = 3
+
+        threads[n].start()
+        self.logger.debug(f"Start thread: {threads[n].name}")
+        threads[n].join()
+        self.logger.debug(f"Stop thread: {threads[n].name}")
+
+        self.logger.info("Stop testing")

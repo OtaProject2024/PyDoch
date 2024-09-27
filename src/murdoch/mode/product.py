@@ -15,7 +15,7 @@ class Product:
         self.__sigs()
 
         self.lock = threading.Lock()
-        self.button_state = False
+        self.state = True
         self.contact = False
         self.stationary = False
         self.action_state = 0
@@ -36,33 +36,21 @@ class Product:
             self.logger.info("Received signal: SIGALRM")
 
         with self.lock:
-            if self.button_state:
-                self.button_state = False
+            if self.state:
+                self.state = False
             else:
-                self.button_state = True
+                self.state = True
                 time.sleep(0.1)
-                self.button_state = False
+                self.state = False
         time.sleep(0.1)
         self.logger.info("Stop processing")
         sys.exit()
-
-    # Button thread calls
-    def __bt(self):
-        b = component.Button(
-            self.config["components"]["button"]["channel"],
-            self.config["components"]["button"]["delay"],
-        )
-        for p in ("ON", "OFF"):
-            with self.lock:
-                self.button_state = b.run()
-            self.logger.info(f"Button state: {p}")
-        b.stop()
 
     # Action thread calls
     def __ac(self):
         delay = self.config["operation"]["action"]["normal_delay"]
         irq_delay = self.config["operation"]["action"]["sensor_interrupt_delay"]
-        while self.button_state:
+        while self.state:
             if self.contact:
                 with self.lock:
                     self.action_state = 1
@@ -73,12 +61,12 @@ class Product:
                     self.logger.info("Sensor state: STATIONARY")
                     with self.lock:
                         self.action_state = random.randint(2, 3)
-                    self.logger.debug(f"state: {self.action_state}")
+                    self.logger.debug(f"action state: {self.action_state}")
                     time.sleep(irq_delay)
                 else:
                     with self.lock:
                         self.action_state = random.randint(0, 3)
-                    self.logger.debug(f"state: {self.action_state}")
+                    self.logger.debug(f"action state: {self.action_state}")
                     time.sleep(delay)
 
     # Sensor thread calls
@@ -89,7 +77,7 @@ class Product:
             self.config["components"]["bno055_sensor"]["magnetic_threshold"],
             self.config["components"]["bno055_sensor"]["acceleration_threshold"]
         )
-        while self.button_state:
+        while self.state:
             with self.lock:
                 self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
             self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
@@ -105,7 +93,7 @@ class Product:
             self.config["components"]["dc_motor"]["save_power"],
         )
         d.start()
-        while self.button_state:
+        while self.state:
             d.run(self.action_state)
         d.stop()
 
@@ -117,7 +105,7 @@ class Product:
             self.config["components"]["sv_motor"]["angle"]
         )
         s.start()
-        while self.button_state:
+        while self.state:
             s.run(self.action_state)
         s.stop()
 
@@ -127,7 +115,7 @@ class Product:
             self.config["components"]["sound"]["file"],
             self.config["components"]["sound"]["volume"],
         )
-        while self.button_state:
+        while self.state:
             u.run(self.contact)
 
     # Main thread calls
@@ -136,7 +124,6 @@ class Product:
         try:
             while True:
                 threads = [
-                    threading.Thread(target=self.__bt, daemon=True, name="Button control"),
                     threading.Thread(target=self.__ac, daemon=True, name="Action control"),
                     threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
                     threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
@@ -144,12 +131,7 @@ class Product:
                     threading.Thread(target=self.__so, daemon=True, name="Sound control"),
                 ]
 
-                threads[0].start()
-                self.logger.debug(f"Start thread: {threads[0].name}")
-                while not self.button_state:
-                    pass
-
-                for thread in threads[1:]:
+                for thread in threads:
                     thread.start()
                     self.logger.debug(f"Start thread: {thread.name}")
 

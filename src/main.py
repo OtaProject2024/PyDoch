@@ -27,10 +27,10 @@ class Boot:
             if mode_arg in mode_list:
                 self.mode = mode_arg
             else:
-                print(f"Warning: \"{args[1]}\" is not a valid mode. Defaulting to \"{mode_list[1]}\".")
-                self.mode = mode_list[1]
+                print(f"Warning: \"{args[1]}\" is not a valid mode. Defaulting to \"{mode_list[0]}\".")
+                self.mode = mode_list[0]
         else:
-            self.mode = mode_list[0]
+            self.mode = mode_list[1]
 
     # Loading config file
     def __conf(self, path=os.path.join(os.path.dirname(os.path.dirname(__file__)), "conf", "config.yaml")):

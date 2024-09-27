@@ -37,13 +37,5 @@ PyDoch uses the `conf/config.yaml` file for configuration settings.
 You can create a configuration file:
 ```
 cd conf
-sh setup.sh
-```
-
-```
-sudo cp pydoch.service /etc/systemd/system
-sudo systemctl daemon-reload
-sudo systemctl enable pydoch.service
-sudo systemctl start pydoch.service
-sudo systemctl status pydoch.service
+sh setup_config.sh
 ```
