@@ -1,4 +1,3 @@
-import random
 import signal
 import sys
 import threading
@@ -60,12 +59,14 @@ class Product:
                 if self.stationary:
                     self.logger.info("Sensor state: STATIONARY")
                     with self.lock:
-                        self.action_state = random.randint(2, 3)
+                        # self.action_state = random.randint(2, 3)
+                        self.action_state = 1
                     self.logger.debug(f"action state: {self.action_state}")
                     time.sleep(irq_delay)
                 else:
                     with self.lock:
-                        self.action_state = random.randint(0, 3)
+                        # self.action_state = random.randint(0, 3)
+                        self.action_state = 1
                     self.logger.debug(f"action state: {self.action_state}")
                     time.sleep(delay)
 
