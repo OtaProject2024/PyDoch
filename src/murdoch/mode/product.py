@@ -17,7 +17,7 @@ class Product:
         self.state = True
         self.contact = False
         self.stationary = False
-        self.action_state = 0
+        self.action_state = 1
 
     # Stop signal control
     def __sigs(self):
@@ -46,43 +46,43 @@ class Product:
         sys.exit()
 
     # Action thread calls
-    def __ac(self):
-        delay = self.config["operation"]["action"]["normal_delay"]
-        irq_delay = self.config["operation"]["action"]["sensor_interrupt_delay"]
-        while self.state:
-            if self.contact:
-                with self.lock:
-                    self.action_state = 1
-                self.logger.info("Sensor state: PULLED")
-                time.sleep(delay)
-            else:
-                if self.stationary:
-                    self.logger.info("Sensor state: STATIONARY")
-                    with self.lock:
-                        # self.action_state = random.randint(2, 3)
-                        self.action_state = 1
-                    self.logger.debug(f"action state: {self.action_state}")
-                    time.sleep(irq_delay)
-                else:
-                    with self.lock:
-                        # self.action_state = random.randint(0, 3)
-                        self.action_state = 1
-                    self.logger.debug(f"action state: {self.action_state}")
-                    time.sleep(delay)
+    # def __ac(self):
+    #     delay = self.config["operation"]["action"]["normal_delay"]
+    #     irq_delay = self.config["operation"]["action"]["sensor_interrupt_delay"]
+    #     while self.state:
+    #         if self.contact:
+    #             with self.lock:
+    #                 self.action_state = 1
+    #             self.logger.info("Sensor state: PULLED")
+    #             time.sleep(delay)
+    #         else:
+    #             if self.stationary:
+    #                 self.logger.info("Sensor state: STATIONARY")
+    #                 with self.lock:
+    #                     self.action_state = 1
+    #                     # self.action_state = random.randint(2, 3)
+    #                 # self.logger.debug(f"action state: {self.action_state}")
+    #                 time.sleep(irq_delay)
+    #             else:
+    #                 with self.lock:
+    #                     self.action_state = 1
+    #                     # self.action_state = random.randint(0, 3)
+    #                 # self.logger.debug(f"action state: {self.action_state}")
+    #                 time.sleep(delay)
 
     # Sensor thread calls
-    def __bo(self):
-        o = component.BNO055Sensor(
-            self.config["components"]["bno055_sensor"]["frequency"],
-            self.config["components"]["bno055_sensor"]["interval"],
-            self.config["components"]["bno055_sensor"]["magnetic_threshold"],
-            self.config["components"]["bno055_sensor"]["acceleration_threshold"]
-        )
-        while self.state:
-            with self.lock:
-                self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
-            self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
-            self.logger.debug(f"acceleration_magnitude: {acc_magnitude}")
+    # def __bo(self):
+    #     o = component.BNO055Sensor(
+    #         self.config["components"]["bno055_sensor"]["frequency"],
+    #         self.config["components"]["bno055_sensor"]["interval"],
+    #         self.config["components"]["bno055_sensor"]["magnetic_threshold"],
+    #         self.config["components"]["bno055_sensor"]["acceleration_threshold"]
+    #     )
+    #     while self.state:
+    #         with self.lock:
+    #             self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
+    #         self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
+    #         self.logger.debug(f"acceleration_magnitude: {acc_magnitude}")
 
     # DCMotor thread calls
     def __dc(self):
@@ -111,13 +111,13 @@ class Product:
         s.stop()
 
     # Sound thread calls
-    def __so(self):
-        u = component.Sound(
-            self.config["components"]["sound"]["file"],
-            self.config["components"]["sound"]["volume"],
-        )
-        while self.state:
-            u.run(self.contact)
+    # def __so(self):
+    #     u = component.Sound(
+    #         self.config["components"]["sound"]["file"],
+    #         self.config["components"]["sound"]["volume"],
+    #     )
+    #     while self.state:
+    #         u.run(self.contact)
 
     # Main thread calls
     def run(self):
@@ -125,12 +125,16 @@ class Product:
         try:
             while True:
                 threads = [
-                    threading.Thread(target=self.__ac, daemon=True, name="Action control"),
-                    threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
                     threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
                     threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
-                    threading.Thread(target=self.__so, daemon=True, name="Sound control"),
                 ]
+                # threads = [
+                #     threading.Thread(target=self.__ac, daemon=True, name="Action control"),
+                #     threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
+                #     threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
+                #     threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
+                #     threading.Thread(target=self.__so, daemon=True, name="Sound control"),
+                # ]
 
                 for thread in threads:
                     thread.start()

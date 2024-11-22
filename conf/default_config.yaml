@@ -26,7 +26,7 @@ components:
   sv_motor:
     channel: 18
     frequency: 50
-    angle: 60
+    angle: 40
   sound:
     file: "tureta.wav"
     volume: 1.0
