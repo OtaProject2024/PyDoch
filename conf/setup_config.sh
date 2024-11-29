@@ -26,6 +26,7 @@ components:
     in2_channel: 27
     power: 100
     save_power: 50
+    ward: 0.3
   sv_motor:
     channel: 18
     frequency: 50

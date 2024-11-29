@@ -33,6 +33,7 @@ class Test:
             self.config["components"]["dc_motor"]["in2_channel"],
             self.config["components"]["dc_motor"]["power"],
             self.config["components"]["dc_motor"]["save_power"],
+            self.config["components"]["dc_motor"]["ward"]
         )
         d.start()
         self.logger.debug(f'Action state: {self.config["test"]["target"]["state"]}')

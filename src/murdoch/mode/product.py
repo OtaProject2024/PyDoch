@@ -92,6 +92,7 @@ class Product:
             self.config["components"]["dc_motor"]["in2_channel"],
             self.config["components"]["dc_motor"]["power"],
             self.config["components"]["dc_motor"]["save_power"],
+            self.config["components"]["dc_motor"]["ward"]
         )
         d.start()
         while self.state:

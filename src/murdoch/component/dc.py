@@ -5,13 +5,14 @@ from ._gpioutils import Channel
 
 # Controlling DC motor and driver
 class DCMotor:
-    def __init__(self, ch1=12, ch2=22, ch3=27, pw=100, s_pw=50, freq=50):
+    def __init__(self, ch1=12, ch2=22, ch3=27, pw=100, s_pw=50, ward=0.3, freq=50):
         self.ch1 = Channel(ch1)
         self.ch2 = Channel(ch2)
         self.ch3 = Channel(ch3)
 
         self.power = pw
         self.save_power = s_pw
+        self.ward = ward
         self.ch1.set_pwm(freq, 100)
 
     # Change to forward mode
@@ -50,9 +51,9 @@ class DCMotor:
         elif state == 2 or state == 3:
             self.__speed(self.save_power)
 
-        time.sleep(0.3)
+        time.sleep(self.ward)
         self.__backward()
-        time.sleep(0.3)
+        time.sleep(self.ward)
         self.__forward()
 
     def stop(self):
