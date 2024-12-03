@@ -8,9 +8,11 @@ from .. import component
 
 # Product mode
 class Product:
-    def __init__(self, conf, log):
+    def __init__(self, conf, log, overview):
         self.config = conf
         self.logger = log
+        self.threads = []
+        self.overview = overview
         self.__sigs()
 
         self.lock = threading.Lock()
@@ -44,6 +46,15 @@ class Product:
         time.sleep(0.1)
         self.logger.info("Stop processing")
         sys.exit()
+
+    # Overview thread calls
+    def __ov(self):
+        while self.state:
+            self.overview.addition(
+                threads=self.threads,
+                state=self.state,
+                action_state=self.action_state
+            )
 
     # Action thread calls
     # def __ac(self):
@@ -96,6 +107,7 @@ class Product:
         )
         d.start()
         while self.state:
+            pass
             d.run(self.action_state)
         d.stop()
 
@@ -125,10 +137,12 @@ class Product:
         self.logger.info("Start processing")
         try:
             while True:
-                threads = [
+                self.threads = [
                     threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
                     threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
                 ]
+                if self.overview is not None:
+                    self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="Overview control"))
                 # threads = [
                 #     threading.Thread(target=self.__ac, daemon=True, name="Action control"),
                 #     threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
@@ -137,11 +151,11 @@ class Product:
                 #     threading.Thread(target=self.__so, daemon=True, name="Sound control"),
                 # ]
 
-                for thread in threads:
+                for thread in self.threads:
                     thread.start()
                     self.logger.debug(f"Start thread: {thread.name}")
 
-                for thread in threads:
+                for thread in self.threads:
                     thread.join()
                     self.logger.debug(f"Stop thread: {thread.name}")
         except Exception as e:

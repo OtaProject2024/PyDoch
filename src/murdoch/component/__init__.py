@@ -1,10 +1,11 @@
 import RPi.GPIO as GPIO
 
 # Components
-from .bo import BNO055Sensor
+# from .bt import Button
+# from .bo import BNO055Sensor
 from .dc import DCMotor
 from .sv import SVMotor
-from .so import Sound
+# from .so import Sound
 
 # RPi.GPIO setup
 GPIO.setwarnings(False)

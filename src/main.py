@@ -14,6 +14,7 @@ class Boot:
         self.mode = None
         self.config = None
         self.logger = None
+        self.overview = None
         self.__mode()
         self.__conf()
         self.__log()
@@ -27,7 +28,7 @@ class Boot:
             if mode_arg in mode_list:
                 self.mode = mode_arg
             else:
-                print(f"Warning: \"{args[1]}\" is not a valid mode. Defaulting to \"{mode_list[0]}\".")
+                #print(f"Warning: \"{args[1]}\" is not a valid mode. Defaulting to \"{mode_list[0]}\".")
                 self.mode = mode_list[0]
         else:
             self.mode = mode_list[1]
@@ -40,7 +41,7 @@ class Boot:
             with open(path, "r") as file:
                 self.config = yaml.safe_load(file)
         except FileNotFoundError as fnf_error:
-            print(fnf_error)
+            #print(fnf_error)
             with open(
                     os.path.join(
                         os.path.dirname(os.path.dirname(__file__)),
@@ -57,9 +58,10 @@ class Boot:
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(f"[%(levelname).4s] %(name)s({self.mode[:4]}):%(asctime)s - %(message)s")
 
-        stream_handler = logging.StreamHandler(sys.stdout)
-        stream_handler.setFormatter(formatter)
-        self.logger.addHandler(stream_handler)
+        if self.config["operation"]["log"]["mode"].upper() != "RICH":
+            stream_handler = logging.StreamHandler(sys.stdout)
+            stream_handler.setFormatter(formatter)
+            self.logger.addHandler(stream_handler)
 
         name = "murdoch_" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".log"
         file_handler = logging.FileHandler(os.path.join(os.path.dirname(os.path.dirname(__file__)), "log", name))
@@ -85,11 +87,15 @@ class Boot:
 
     # Main thread calls
     def run(self):
-        self.__info()
+        if self.config["operation"]["log"]["mode"].upper() == "RICH":
+            self.overview = mode.Overview(self.config, self.mode)
+        else:
+            self.__info()
+
         if self.mode == "PRODUCT":
-            mode.Product(self.config, self.logger).run()
+            mode.Product(self.config, self.logger, self.overview).run()
         elif self.mode == "TEST":
-            mode.Test(self.config, self.logger).run()
+            mode.Test(self.config, self.logger, self.overview).run()
 
 
 if __name__ == '__main__':

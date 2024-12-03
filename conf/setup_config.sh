@@ -2,6 +2,8 @@
 
 cat <<EOF > config.yaml
 operation:
+  log:
+    mode: "RICH"
   action:
     normal_delay: 5
     sensor_interrupt_delay: 10
