@@ -187,7 +187,7 @@ pip install pygame
 
 - **Implemented TUI mode.**
 
-    By changing mode: "NORMAL" to mode: "RICH" in conf/config.yaml, you can enable it.
+    By changing ``mode: "NORMAL"`` to ``mode: "RICH"`` in ``conf/config.yaml``, you can enable it.
 
     ![demo](assets/demo/demo.gif)
     **Note:**
