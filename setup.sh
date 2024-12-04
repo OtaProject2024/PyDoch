@@ -16,6 +16,8 @@ pip install pygame
 # Create the config file
 cat <<EOF > conf/config.yaml
 operation:
+  log:
+    mode: "NORMAL"
   action:
     normal_delay: 5
     sensor_interrupt_delay: 10
@@ -35,15 +37,16 @@ components:
     acceleration_threshold: 10
     magnetic_threshold: 500
   dc_motor:
-    ref_channel: 12
+    pwm_channel: 12
     in1_channel: 22
     in2_channel: 27
     power: 100
     save_power: 50
+    direction: 0.3
   sv_motor:
     channel: 18
     frequency: 50
-    angle: 60
+    angle: 40
   sound:
     file: "tureta.wav"
     volume: 1.0

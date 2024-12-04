@@ -8,11 +8,43 @@ import yaml
 # Overview output
 class Overview:
     def __init__(self, conf, mode):
-        self.original_config = conf
         self.config = self.filter_config(conf)
         self.mode = mode
+
+        self.left = []
+        self.start_time = time.time()
         self.cnt = 3
         self.direction = 1
+
+        self.left_side()
+
+    # Filter out unnecessary configuration items
+    def filter_config(self, config, exclude_keys=None):
+        if exclude_keys is None:
+            exclude_keys = [
+                "operation",
+                "times",
+                "delay",
+                "state",
+                "button",
+                "bno055_sensor",
+                "sound",
+                "save_power",
+            ]
+
+        if isinstance(config, dict):
+            return {
+                k: self.filter_config(v, exclude_keys)
+                for k, v in config.items()
+                if k not in exclude_keys
+            }
+        elif isinstance(config, list):
+            return [self.filter_config(v, exclude_keys) for v in config]
+        else:
+            return config
+
+    # Create left side
+    def left_side(self):
         title = f"- PyDoch (https://github.com/OtaProject2024/PyDoch) - ".center(78)
         machine = f"machine: {platform.machine()}({platform.architecture()[0]})".ljust(36)
         system = f"system: {platform.system()} {platform.release()}".ljust(36)
@@ -39,39 +71,19 @@ class Overview:
             self.left.append(f" ┃ {line.ljust(45)}┃")
         self.left.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
 
-    # Filter out unnecessary configuration items
-    def filter_config(self, config, exclude_keys=None):
-        if exclude_keys is None:
-            exclude_keys = [
-                "operation",
-                "times",
-                "delay",
-                "state",
-                "button",
-                "bno055_sensor",
-                "sound"
-            ]
-
-        if isinstance(config, dict):
-            return {
-                k: self.filter_config(v, exclude_keys)
-                for k, v in config.items()
-                if k not in exclude_keys
-            }
-        elif isinstance(config, list):
-            return [self.filter_config(v, exclude_keys) for v in config]
-        else:
-            return config
-
     # Update overview
-    def addition(self, threads, state, action_state, contact="invalid", stationary="invalid", times=0, st_times=0):
-
+    def addition(self, threads, state, action_state, times=0, st_times=0):
         mode = f"\033[34m{self.mode.ljust(7)}\033[0m".ljust(15)
-        current_time = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
 
-        active = f"active: \033[31m{state}\033[0m".ljust(45)
+        current_time = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
+        uptime = time.time() - self.start_time
+        hours, rem = divmod(uptime, 3600)
+        minutes, seconds = divmod(rem, 60)
+        uptime = f"uptime: {int(hours):02}:{int(minutes):02}:{int(seconds):02}".ljust(36)
+
+        behavior = f"behavior: \033[31m{state}\033[0m".ljust(45)
         if state:
-            active = f"active: \033[32m{state}\033[0m".ljust(45)
+            behavior = f"behavior: \033[32m{state}\033[0m".ljust(45)
 
         if action_state == 0:
             action_state = "\033[31m" + "stop" + "\033[0m"
@@ -81,40 +93,25 @@ class Overview:
             action_state = "\033[33m" + "left" + "\033[0m"
         elif action_state == 3:
             action_state = "\033[34mm" + "right" + "\033[0m"
-        action = f"action state: {action_state}".ljust(45)
-
-        if contact == "invalid":
-            contact = f"contact: \033[31m{str(contact)}\033[0m".ljust(45)
-        else:
-            if contact:
-                contact = f"contact: \033[32m{str(contact)}\033[0m".ljust(45)
-            else:
-                contact = f"contact: \033[36m{str(contact)}\033[0m".ljust(45)
-
-        if stationary == "invalid":
-            stationary = f"stationary: \033[31m{str(stationary)}\033[0m".ljust(45)
-        else:
-            if stationary:
-                stationary = f"stationary: \033[32m{str(stationary)}\033[0m".ljust(45)
-            else:
-                stationary = f"stationary: \033[36m{str(stationary)}\033[0m".ljust(45)
+        method = f"method: {action_state}".ljust(45)
 
         if self.mode == "TEST":
-            times = f"times: {times}/{st_times} ({round(times / st_times * 100, 2)}%)".ljust(36)
+            div = (str(times).zfill(2) + "/" + str(st_times)).rjust(5)
+            per = f"{round(times / st_times * 100, 2):.02f}".rjust(6)
+            times = f"times: {div}  [{per}%]".ljust(36)
         else:
             times = ("times: " + "\033[31m" + "invalid" + "\033[0m").ljust(45)
 
         right = [
             " ┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓\n",
-            f" ┃ mode: {mode} ┃ {current_time.ljust(20)}┃\n",
+            f" ┃ MODE: {mode} ┃ {current_time.ljust(20)}┃\n",
             " ┗━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━┛\n",
             " ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n",
             " ┃             ROBOT STATE             ┃\n",
             " ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n",
-            f" ┃ {active}┃\n",
-            f" ┃ {action}┃\n",
-            f" ┃ {contact}┃\n",
-            f" ┃ {stationary}┃\n",
+            f" ┃ {uptime}┃\n",
+            f" ┃ {behavior}┃\n",
+            f" ┃ {method}┃\n",
             " ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n",
             " ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n",
             " ┃            TEST PROGRESS            ┃\n",
@@ -129,10 +126,10 @@ class Overview:
         no = 1
         for thread in threads:
             c = "{0}: ".format(str(no).zfill(2))
-            t = "\033[36m" + "inactive  " + "\033[0m"
+            t = "\033[36m" + "deactivate   " + "\033[0m"
             if thread.is_alive():
-                t = "\033[32m" + "active    " + "\033[0m"
-            right.append(f" ┃ {c + t + thread.name.ljust(22)}┃\n")
+                t = "\033[32m" + "activate     " + "\033[0m"
+            right.append(f" ┃ {c + t + thread.name.ljust(19)}┃\n")
             no += 1
         right.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
 
@@ -144,7 +141,7 @@ class Overview:
             self.direction = 1
         right.append(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n")
         right.append(f" ┃{fish.rjust(self.cnt).ljust(37)}┃\n")
-        right.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
+        right.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
 
         output = self.left[:]
         for i in range(2, len(self.left)):
@@ -154,5 +151,5 @@ class Overview:
                 output[i] += "\n"
 
         print(*output, sep="")
-        print(f"\033[{len(output) + 1}A", end="")
+        print(f"\033[{len(output)}A", end="")
         time.sleep(0.5)

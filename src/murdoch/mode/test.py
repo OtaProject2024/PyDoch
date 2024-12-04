@@ -64,12 +64,12 @@ class Test:
     # DCMotor thread calls
     def __dc(self):
         d = component.DCMotor(
-            self.config["components"]["dc_motor"]["ref_channel"],
+            self.config["components"]["dc_motor"]["pwm_channel"],
             self.config["components"]["dc_motor"]["in1_channel"],
             self.config["components"]["dc_motor"]["in2_channel"],
             self.config["components"]["dc_motor"]["power"],
             self.config["components"]["dc_motor"]["save_power"],
-            self.config["components"]["dc_motor"]["ward"]
+            self.config["components"]["dc_motor"]["direction"]
         )
         d.start()
         self.logger.debug(f'Action state: {self.config["test"]["target"]["state"]}')
