@@ -107,7 +107,6 @@ class Product:
         )
         d.start()
         while self.state:
-            pass
             d.run(self.action_state)
         d.stop()
 

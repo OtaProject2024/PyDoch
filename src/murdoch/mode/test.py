@@ -89,7 +89,6 @@ class Test:
         s.start()
         self.logger.debug(f'Action state: {self.config["test"]["target"]["state"]}')
         for i in range(self.config["test"]["target"]["times"]):
-            time.sleep(1)
             self.times += 1
             s.run(self.config["test"]["target"]["state"])
         self.state = False

@@ -98,15 +98,15 @@ pip install pygame
     ```yaml:conf/config.yaml
     operation:
       log:
-        mode: "NORMAL"  # TUI mode (experimental feature)
+        mode: "NORMAL"                   # TUI mode (experimental feature)
       action:
         normal_delay: 5
         sensor_interrupt_delay: 10
     test:
       target:
-        name: "SVMotor"  # Target for test mode
-        times: 30        # Repeat count
-        delay: 3         # Interval between repeats
+        name: "SVMotor"                  # Target for test mode
+        times: 30                        # Repeat count
+        delay: 3                         # Interval between repeats
         state: 1
     components:
       button:
@@ -118,16 +118,16 @@ pip install pygame
         acceleration_threshold: 10
         magnetic_threshold: 500
       dc_motor:
-        pwm_channel: 12  # GPIO pin for PWM (BCM)
-        in1_channel: 22  # GPIO pin for IN1 (BCM)
-        in2_channel: 27  # GPIO pin for IN2 (BCM)
-        power: 100       # Motor speed (duty cycle)
+        pwm_channel: 12                  # GPIO pin for PWM (BCM)
+        in1_channel: 22                  # GPIO pin for IN1 (BCM)
+        in2_channel: 27                  # GPIO pin for IN2 (BCM)
+        power: 100                       # Motor speed (duty cycle)
         save_power: 50
-        direction: 0.3   # Motor direction change interval
+        direction: 0.3                   # Motor direction change interval
       sv_motor:
-        channel: 18      # GPIO pin for PWM (BCM)
-        frequency: 50    # Frequency
-        angle: 40        # Rotation angle (degrees)
+        channel: 18                      # GPIO pin for PWM (BCM)
+        frequency: 50                    # Frequency
+        angle: 40                        # Rotation angle (degrees)
       sound:
         file: "tureta.wav"
         volume: 1.0
@@ -192,3 +192,12 @@ pip install pygame
          ```
 
 ---
+
+## Experimental feature
+
+- **Implemented TUI mode.**
+
+    By changing mode: "NORMAL" to mode: "RICH" in conf/config.yaml, you can enable it.
+
+    ![demo](assets/demo/demo.gif)
+    **Note:** The images were created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
