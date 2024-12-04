@@ -11,7 +11,8 @@ class Overview:
         self.original_config = conf
         self.config = self.filter_config(conf)
         self.mode = mode
-        self.cnt = 0
+        self.cnt = 3
+        self.direction = 1
         title = f"- PyDoch (https://github.com/OtaProject2024/PyDoch) - ".center(78)
         machine = f"machine: {platform.machine()}({platform.architecture()[0]})".ljust(36)
         system = f"system: {platform.system()} {platform.release()}".ljust(36)
@@ -32,7 +33,10 @@ class Overview:
             " ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫",
         ]
         for line in yaml.dump(self.config, sort_keys=False, allow_unicode=True).splitlines():
-            self.left.append(f" ┃ {line.ljust(36)}┃")
+            if ":" in line:
+                key, value = line.split(":", 1)
+                line = f"{key}:\033[33m{value}\033[0m"
+            self.left.append(f" ┃ {line.ljust(45)}┃")
         self.left.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
 
     # Filter out unnecessary configuration items
@@ -61,29 +65,48 @@ class Overview:
 
     # Update overview
     def addition(self, threads, state, action_state, contact="invalid", stationary="invalid", times=0, st_times=0):
-        current_time = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
-        active = f"active: {state}".ljust(36)
-        if action_state == 0:
-            action_state = "stop"
-        elif action_state == 1:
-            action_state = "forward"
-        elif action_state == 2:
-            action_state = "left"
-        elif action_state == 3:
-            action_state = "right"
 
-        action = f"action state: {action_state}".ljust(36)
-        contact = f"contact: {str(contact)}".ljust(36)
-        stationary = f"stationary: {str(stationary)}".ljust(36)
+        mode = f"\033[34m{self.mode.ljust(7)}\033[0m".ljust(15)
+        current_time = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
+
+        active = f"active: \033[31m{state}\033[0m".ljust(45)
+        if state:
+            active = f"active: \033[32m{state}\033[0m".ljust(45)
+
+        if action_state == 0:
+            action_state = "\033[31m" + "stop" + "\033[0m"
+        elif action_state == 1:
+            action_state = "\033[32m" + "forward" + "\033[0m"
+        elif action_state == 2:
+            action_state = "\033[33m" + "left" + "\033[0m"
+        elif action_state == 3:
+            action_state = "\033[34mm" + "right" + "\033[0m"
+        action = f"action state: {action_state}".ljust(45)
+
+        if contact == "invalid":
+            contact = f"contact: \033[31m{str(contact)}\033[0m".ljust(45)
+        else:
+            if contact:
+                contact = f"contact: \033[32m{str(contact)}\033[0m".ljust(45)
+            else:
+                contact = f"contact: \033[36m{str(contact)}\033[0m".ljust(45)
+
+        if stationary == "invalid":
+            stationary = f"stationary: \033[31m{str(stationary)}\033[0m".ljust(45)
+        else:
+            if stationary:
+                stationary = f"stationary: \033[32m{str(stationary)}\033[0m".ljust(45)
+            else:
+                stationary = f"stationary: \033[36m{str(stationary)}\033[0m".ljust(45)
 
         if self.mode == "TEST":
-            times = f"times: {times}/{st_times}".ljust(36)
+            times = f"times: {times}/{st_times} ({round(times / st_times * 100, 2)}%)".ljust(36)
         else:
-            times = f"times: invalid".ljust(36)
+            times = ("times: " + "\033[31m" + "invalid" + "\033[0m").ljust(45)
 
         right = [
             " ┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓\n",
-            f" ┃ mode: {self.mode.ljust(7)} ┃ {current_time.ljust(20)}┃\n",
+            f" ┃ mode: {mode} ┃ {current_time.ljust(20)}┃\n",
             " ┗━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━┛\n",
             " ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n",
             " ┃             ROBOT STATE             ┃\n",
@@ -103,17 +126,25 @@ class Overview:
             " ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n",
         ]
 
-        cnt = 1
+        no = 1
         for thread in threads:
-            cc = "{0}: ".format(str(cnt).zfill(2))
-            right.append(f" ┃ {(cc + thread.name).ljust(36)}┃\n")
-            cnt += 1
+            c = "{0}: ".format(str(no).zfill(2))
+            t = "\033[36m" + "inactive  " + "\033[0m"
+            if thread.is_alive():
+                t = "\033[32m" + "active    " + "\033[0m"
+            right.append(f" ┃ {c + t + thread.name.ljust(22)}┃\n")
+            no += 1
         right.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
 
+        self.cnt += self.direction
+        fish = "><>" if self.direction == 1 else "<><"
+        if self.cnt == 37:
+            self.direction = -1
+        elif self.cnt == 3:
+            self.direction = 1
         right.append(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n")
-        right.append(f" ┃{'><>'.rjust(self.cnt).ljust(37)}┃\n", )
+        right.append(f" ┃{fish.rjust(self.cnt).ljust(37)}┃\n")
         right.append(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
-        self.cnt = (self.cnt + 1) % 38
 
         output = self.left[:]
         for i in range(2, len(self.left)):
