@@ -62,8 +62,6 @@ pip install pygame
 
    This may take some time. Feel free to enjoy a cup of tea while waiting 🍵
 
----
-
 ### Reflect Latest Changes (Subsequent Times)
 
 1. Navigate to the repository:
@@ -77,8 +75,6 @@ pip install pygame
     ```shell
     git pull
     ```
-
----
 
 ### Editing Configuration Files
 
@@ -141,8 +137,6 @@ pip install pygame
     sh setup_config.sh
     ```
 
----
-
 ### Log File Review
 
 1. Navigate to the repository:
@@ -167,8 +161,6 @@ pip install pygame
 
    Replace with the actual log file name to display its contents.
 
----
-
 ### Startup Instructions
 
 1. Navigate to the repository:
@@ -191,8 +183,6 @@ pip install pygame
          sh boot.sh -t
          ```
 
----
-
 ## Experimental feature
 
 - **Implemented TUI mode.**
@@ -200,4 +190,6 @@ pip install pygame
     By changing mode: "NORMAL" to mode: "RICH" in conf/config.yaml, you can enable it.
 
     ![demo](assets/demo/demo.gif)
-    **Note:** The images were created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
+    **Note:**
+    - The image is being simulated on a macOS environment.
+    - The images were created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
