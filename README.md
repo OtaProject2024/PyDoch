@@ -60,7 +60,7 @@ pip install pygame
     sh setup.sh
     ```
 
-   This may take some time. Feel free to enjoy a cup of tea while waiting 🍵
+   Please sit back and enjoy a cup of coffee while you wait. ☕️
 
 ### Reflect Latest Changes (Subsequent Times)
 
