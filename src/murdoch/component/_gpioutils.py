@@ -5,48 +5,48 @@ import RPi.GPIO as GPIO
 class Channel:
     # Activate channel
     def __init__(self, ch=12, io=False, pull=False):
-        self.channel = ch
-        self.pwm = None
+        self.__channel = ch
+        self.__pwm = None
 
         if io:
             if pull:
-                GPIO.setup(self.channel, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+                GPIO.setup(self.__channel, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             else:
-                GPIO.setup(self.channel, GPIO.IN)
+                GPIO.setup(self.__channel, GPIO.IN)
         else:
             if pull:
-                GPIO.setup(self.channel, GPIO.OUT, pull_up_down=GPIO.PUD_UP)
+                GPIO.setup(self.__channel, GPIO.OUT, pull_up_down=GPIO.PUD_UP)
             else:
-                GPIO.setup(self.channel, GPIO.OUT)
+                GPIO.setup(self.__channel, GPIO.OUT)
 
     # Return string
     def __str__(self):
-        return f"channel: {self.channel}"
+        return f"channel: {self.__channel}"
 
     # Enable pwm
     def set_pwm(self, freq=50, duty=50):
-        self.pwm = GPIO.PWM(self.channel, freq)
-        self.pwm.start(duty)
+        self.__pwm = GPIO.PWM(self.__channel, freq)
+        self.__pwm.start(duty)
 
     # Change duty ratio
     def set_duty(self, duty=50):
-        self.pwm.ChangeDutyCycle(duty)
+        self.__pwm.ChangeDutyCycle(duty)
 
     # Change voltage
     def set_volt(self, hl=True):
         if hl:
-            GPIO.output(self.channel, GPIO.HIGH)
+            GPIO.output(self.__channel, GPIO.HIGH)
         else:
-            GPIO.output(self.channel, GPIO.LOW)
+            GPIO.output(self.__channel, GPIO.LOW)
 
     # Wait for change
     def wait(self):
         while True:
-            if GPIO.input(self.channel) == 0:
+            if GPIO.input(self.__channel) == 0:
                 break
 
     # Deactivate channel
     def end(self):
-        if self.pwm is not None:
-            self.pwm.stop()
-        GPIO.cleanup(self.channel)
+        if self.__pwm is not None:
+            self.__pwm.stop()
+        GPIO.cleanup(self.__channel)

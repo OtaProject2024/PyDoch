@@ -21,17 +21,16 @@ class Boot:
 
     # Mode selection from command line arguments
     def __mode(self):
-        mode_list = ["PRODUCT", "TEST"]
+        mode_list = ["PRODUCT", "TEST", "DEMO"]
         args = sys.argv
         if len(args) > 1:
             mode_arg = args[1].upper()
             if mode_arg in mode_list:
                 self.mode = mode_arg
             else:
-                #print(f"Warning: \"{args[1]}\" is not a valid mode. Defaulting to \"{mode_list[0]}\".")
-                self.mode = mode_list[0]
+                self.mode = mode_list[2]
         else:
-            self.mode = mode_list[1]
+            self.mode = mode_list[2]
 
     # Loading config file
     def __conf(self, path=os.path.join(os.path.dirname(os.path.dirname(__file__)), "conf", "config.yaml")):
@@ -41,7 +40,7 @@ class Boot:
             with open(path, "r") as file:
                 self.config = yaml.safe_load(file)
         except FileNotFoundError as fnf_error:
-            #print(fnf_error)
+            # print(fnf_error)
             with open(
                     os.path.join(
                         os.path.dirname(os.path.dirname(__file__)),
@@ -58,7 +57,7 @@ class Boot:
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(f"[%(levelname).4s] %(name)s({self.mode[:4]}):%(asctime)s - %(message)s")
 
-        if self.config["operation"]["log"]["mode"].upper() != "RICH":
+        if self.mode != "DEMO" and self.config["operation"]["interface"]["mode"].upper() != "RICH":
             stream_handler = logging.StreamHandler(sys.stdout)
             stream_handler.setFormatter(formatter)
             self.logger.addHandler(stream_handler)
@@ -75,7 +74,6 @@ class Boot:
             "Program for controlling Murdoch.\n\n"
             "SYSTEM INFORMATION\n"
             f"system: {platform.system()}\n"
-            f"node name: {platform.node()}\n"
             f"release: {platform.release()}\n"
             f"version: {platform.version()}\n"
             f"machine: {platform.machine()}\n"
@@ -87,15 +85,20 @@ class Boot:
 
     # Main thread calls
     def run(self):
-        if self.config["operation"]["log"]["mode"].upper() == "RICH":
-            self.overview = mode.Overview(self.config, self.mode)
+        if self.mode == "DEMO":
+            self.overview = mode.Overview(self.mode, self.config)
+            mode.Demo(self.config, self.logger, self.overview).run()
         else:
-            self.__info()
+            if self.config["operation"]["interface"]["mode"].upper() == "RICH":
+                self.overview = mode.Overview(self.mode, self.config)
+            else:
+                self.__info()
 
-        if self.mode == "PRODUCT":
-            mode.Product(self.config, self.logger, self.overview).run()
-        elif self.mode == "TEST":
-            mode.Test(self.config, self.logger, self.overview).run()
+            if self.mode == "TEST":
+                mode.Test(self.config, self.logger, self.overview).run()
+            elif self.mode == "PRODUCT":
+                mode.Product(self.config, self.logger, self.overview).run()
+        sys.exit(0)
 
 
 if __name__ == '__main__':

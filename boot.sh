@@ -1,13 +1,14 @@
 #!/bin/sh
 
 # Command line arguments and options
-args=${1:-TEST}
+args=${1:-DEMO}
 
-while getopts pt OPT; do
+while getopts ptd OPT; do
   case $OPT in
      p) args="PRODUCT";;
      t) args="TEST";;
-     *) args="TEST";;
+     d) args="DEMO";;
+     *) args="DEMO";;
   esac
 done
 

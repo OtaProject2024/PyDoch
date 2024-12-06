@@ -16,10 +16,10 @@ Set Margin 60
 Set MarginFill "#674EFF"
 Set BorderRadius 10
 
-Type "I created a TUI mode :)" Sleep 2s
+Type "I created a TUI mode :)" Sleep 3s
 Backspace 23
 
-Sleep 1s
-Type "sh boot.sh" Sleep 1s
+Sleep 2s
+Type "sh boot.sh" Sleep 2s
 Enter
 Sleep 40s

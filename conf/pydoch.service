@@ -1,11 +1,11 @@
 [Unit]
-Description=Python script for controlling Murdoch
+Description=Python scripts for controlling Murdoch and Gyobot.
 After=network.target
 
 [Service]
 User=ota
-WorkingDirectory=/home/ota/PyDoch/src/
-ExecStart=/home/ota/PyDoch/.venv/bin/python /home/ota/PyDoch/src/main.py
+WorkingDirectory=/home/ota/PyDoch/
+ExecStart=/home/ota/PyDoch/boot.sh -p
 Restart=on-failure
 
 [Install]

@@ -6,16 +6,16 @@ from ._gpioutils import Channel
 # Controlling button
 class Button:
     def __init__(self, ch=24, dly=1.0):
-        self.ch = Channel(ch, io=True, pull=True)
+        self.__ch = Channel(ch, io=True, pull=True)
 
-        self.delay = dly
-        self.state = False
+        self.__delay = dly
+        self.__state = False
 
     def run(self):
-        time.sleep(self.delay)
-        self.ch.wait()
-        self.state = not self.state
-        return self.state
+        time.sleep(self.__delay)
+        self.__ch.wait()
+        self.__state = not self.__state
+        return self.__state
 
     def stop(self):
-        self.ch.end()
+        self.__ch.end()

@@ -1,60 +1,57 @@
 import signal
-import sys
 import threading
-import time
-
-from .. import component
 
 
 # Test mode
 class Test:
     def __init__(self, conf, log, overview):
+        from .. import component
+        self.component = component
+
         self.config = conf
         self.logger = log
         self.threads = []
-        self.overview = overview
+        self.__sigs()
+        self.stop_event = threading.Event()
 
-        self.state = True
+        self.overview = overview
+        self.behavior = True
         self.times = 0
 
     # Stop signal control
     def __sigs(self):
-        signal.signal(signal.SIGINT, self.stop)
-        signal.signal(signal.SIGTERM, self.stop)
-        signal.signal(signal.SIGALRM, self.stop)
+        signal.signal(signal.SIGINT, self.__stop)
+        signal.signal(signal.SIGTERM, self.__stop)
 
     # Stop processing after receiving signal
-    def stop(self, sig, frame):
-        if sig == signal.SIGINT:
+    def __stop(self, signum, frame):
+        if signum == signal.SIGINT:
             self.logger.info("Received signal: SIGINT")
-        elif sig == signal.SIGTERM:
+        elif signum == signal.SIGTERM:
             self.logger.info("Received signal: SIGTERM")
-        elif sig == signal.SIGALRM:
-            self.logger.info("Received signal: SIGALRM")
-
-        self.logger.info("Stop testing")
-        sys.exit()
+        self.stop_event.set()
 
     # Overview thread calls
     def __ov(self):
-        while True:
-            self.overview.addition(
+        while not self.stop_event.is_set():
+            self.overview.run(
                 threads=self.threads,
-                state=self.state,
-                action_state=self.config["test"]["target"]["state"],
+                behavior=self.behavior,
+                method=self.config["test"]["target"]["method"],
                 times=self.times,
                 st_times=self.config["test"]["target"]["times"]
             )
 
     # Sensor thread calls
     # def __bo(self):
-    #     o = component.BNO055Sensor(
+    #     o = self.component.BNO055Sensor(
     #         self.config["components"]["bno055_sensor"]["frequency"],
     #         self.config["components"]["bno055_sensor"]["interval"],
     #         self.config["components"]["bno055_sensor"]["magnetic_threshold"],
     #         self.config["components"]["bno055_sensor"]["acceleration_threshold"]
     #     )
     #     for i in range(self.config["test"]["target"]["times"]):
+    #         if self.stop_event.is_set(): break
     #         contact, stationary, mag_magnitude, acc_magnitude = o.run()
     #         self.logger.debug(f"Sensor state: {contact}, {stationary}")
     #         self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
@@ -63,7 +60,7 @@ class Test:
 
     # DCMotor thread calls
     def __dc(self):
-        d = component.DCMotor(
+        d = self.component.DCMotor(
             self.config["components"]["dc_motor"]["pwm_channel"],
             self.config["components"]["dc_motor"]["in1_channel"],
             self.config["components"]["dc_motor"]["in2_channel"],
@@ -72,35 +69,38 @@ class Test:
             self.config["components"]["dc_motor"]["direction"]
         )
         d.start()
-        self.logger.debug(f'Action state: {self.config["test"]["target"]["state"]}')
+        self.logger.debug(f'Action method: {self.config["test"]["target"]["method"]}')
         for i in range(self.config["test"]["target"]["times"]):
+            if self.stop_event.is_set(): break
             self.times += 1
-            d.run(self.config["test"]["target"]["state"])
-        self.state = False
+            d.run(self.config["test"]["target"]["method"])
+        self.behavior = False
         d.stop()
 
     # SVMotor thread calls
     def __sv(self):
-        s = component.SVMotor(
+        s = self.component.SVMotor(
             self.config["components"]["sv_motor"]["channel"],
             self.config["components"]["sv_motor"]["frequency"],
             self.config["components"]["sv_motor"]["angle"]
         )
         s.start()
-        self.logger.debug(f'Action state: {self.config["test"]["target"]["state"]}')
+        self.logger.debug(f'Action method: {self.config["test"]["target"]["method"]}')
         for i in range(self.config["test"]["target"]["times"]):
+            if self.stop_event.is_set(): break
             self.times += 1
-            s.run(self.config["test"]["target"]["state"])
-        self.state = False
+            s.run(self.config["test"]["target"]["method"])
+        self.behavior = False
         s.stop()
 
     # Sound thread calls
     # def __so(self):
-    #     u = component.Sound(
+    #     u = self.component.Sound(
     #         self.config["components"]["sound"]["file"],
     #         self.config["components"]["sound"]["volume"],
     #     )
     #     for i in range(self.config["test"]["target"]["times"]):
+    #         if self.stop_event.is_set(): break
     #         self.logger.debug("Sound state: play")
     #         u.run(True)
     #         self.logger.debug("Sound state: stop")
@@ -117,12 +117,6 @@ class Test:
             ]
             if self.overview is not None:
                 self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="Overview control"))
-            # threads = [
-            #     threading.Thread(target=self.__bo, daemon=True, name="Sensor control"),
-            #     threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
-            #     threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
-            #     threading.Thread(target=self.__so, daemon=True, name="Sound control")
-            # ]
 
             n = 0
             match self.config["test"]["target"]["name"].upper():
@@ -130,16 +124,6 @@ class Test:
                     n = 0
                 case "SVMOTOR":
                     n = 1
-            # n = 2
-            # match self.config["test"]["target"]["name"].upper():
-            #     case "SENSOR":
-            #         n = 0
-            #     case "DCMOTOR":
-            #         n = 1
-            #     case "SVMOTOR":
-            #         n = 2
-            #     case "SOUND":
-            #         n = 3
 
             if self.overview is not None:
                 self.threads[2].start()
@@ -155,4 +139,4 @@ class Test:
         except Exception as e:
             self.logger.error(e)
         finally:
-            signal.alarm(0)
+            self.logger.info("Stop testing")

@@ -1,4 +1,6 @@
 # Modes
-from .overview import Overview
-from .product import Product
+from .demo import Demo
 from .test import Test
+from .product import Product
+
+from .overview import Overview

@@ -2,7 +2,7 @@
 
 cat <<EOF > config.yaml
 operation:
-  log:
+  interface:
     mode: "NORMAL"
   action:
     normal_delay: 5
@@ -12,7 +12,7 @@ test:
     name: "SVMotor"
     times: 30
     delay: 3
-    state: 1
+    method: 1
 components:
   button:
     channel: 24
