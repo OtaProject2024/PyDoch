@@ -192,4 +192,4 @@ pip install pygame
     ![demo](assets/demo/demo.gif)
     **Note:**
     - The image is being simulated on a macOS environment.
-    - The image were created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
+    - The image was created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
