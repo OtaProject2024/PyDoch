@@ -129,7 +129,7 @@ pip install pygame
         volume: 1.0
     ```
 
-   Make sure to edit conf/config.yaml rather than conf/default_config.yaml.
+   Make sure to edit ``conf/config.yaml`` rather than ``conf/default_config.yaml``.
 
 4. If ``conf/config.yaml`` does not exist, create it:
 
@@ -192,4 +192,4 @@ pip install pygame
     ![demo](assets/demo/demo.gif)
     **Note:**
     - The image is being simulated on a macOS environment.
-    - The images were created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
+    - The image were created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!
