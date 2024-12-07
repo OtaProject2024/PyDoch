@@ -57,9 +57,9 @@ class Demo:
         self.logger.info("Start demonstration")
         try:
             self.threads = [
-                threading.Thread(target=self.__de, daemon=True, name="DCMotor control"),
-                threading.Thread(target=self.__de, daemon=True, name="SVMotor control"),
-                threading.Thread(target=self.__ov, daemon=True, name="Overview control")
+                threading.Thread(target=self.__de, daemon=True, name="dc_motor control"),
+                threading.Thread(target=self.__de, daemon=True, name="sv_motor control"),
+                threading.Thread(target=self.__ov, daemon=True, name="overview control")
             ]
 
             n = 0

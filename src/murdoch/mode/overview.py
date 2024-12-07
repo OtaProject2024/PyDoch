@@ -1,5 +1,6 @@
 import curses
 import platform
+import subprocess
 import sys
 import time
 
@@ -15,19 +16,24 @@ class Overview:
         self.method = 0
         self.times = 0
         self.st_times = 0
+        self.tag = None
+        self.branch = None
+        self.__latest_git_tag()
+        self.__current_git_branch()
 
         self.content_width = 37
         self.min_width = 80
-        self.min_height = 26
+        self.min_height = 28
         self.color = []
 
         self.start_time = time.time()
+        self.__render_time = 0
         self.cnt = 3
         self.direction = 1
 
     def __filter_config(self, config, exclude_keys=None):
         if exclude_keys is None:
-            exclude_keys = ["operation", "times", "delay", "method", "button", "bno055_sensor", "sound", "save_power"]
+            exclude_keys = ["operation", "times", "delay", "method", "button", "bno055_sensor", "sound"]
         if isinstance(config, dict):
             return {
                 k: self.__filter_config(v, exclude_keys)
@@ -44,7 +50,7 @@ class Overview:
         curses.noecho()
         curses.cbreak()
         curses.nonl()
-        curses.delay_output(100)
+        # curses.delay_output(100)
 
         curses.start_color()
         curses.use_default_colors()
@@ -59,6 +65,42 @@ class Overview:
         for i in range(9):
             self.color.append(curses.color_pair(i))
 
+    def __draw_header(self, screen, start_y, start_x):
+        screen.addstr(start_y, start_x, f"{' ' * ((self.min_width - 52) // 2)}")
+        screen.addstr("- PyDoch(")
+        screen.addstr("https://github.com/OtaProject2024/PyDoch", curses.A_UNDERLINE)
+        screen.addstr(") -")
+        screen.addstr(f"{' ' * ((self.min_width - 52) // 2)}")
+
+    def __latest_git_tag(self):
+        try:
+            self.tag = subprocess.check_output(
+                ["git", "describe", "--tags", "--abbrev=0"],
+                stderr=subprocess.DEVNULL
+            ).strip().decode("utf-8")
+        except subprocess.CalledProcessError:
+            return
+
+    def __current_git_branch(self):
+        try:
+            self.branch = subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                stderr=subprocess.DEVNULL
+            ).strip().decode("utf-8")
+        except subprocess.CalledProcessError:
+            return
+
+    def __draw_footer(self, screen, start_y, start_x):
+        screen.addstr(start_y, start_x, " exit: Ctrl+C".ljust(self.min_width // 2), curses.A_DIM)
+
+        if self.tag is None or self.branch is None:
+            screen.addstr("Unknown v0.0.0  ".rjust(self.min_width // 2), curses.A_DIM)
+        else:
+            if self.branch in ["main", "master"]:
+                screen.addstr(f"Stable {self.tag}  ".rjust(self.min_width // 2), curses.A_DIM)
+            else:
+                screen.addstr(f"Beta {self.tag}  ".rjust(self.min_width // 2), curses.A_DIM)
+
     def __display(self, screen):
         screen.clear()
         self.__term_init()
@@ -68,14 +110,10 @@ class Overview:
         start_x = (width - self.min_width) // 2
         start_y = (height - self.min_height) // 2
 
-        screen.addstr(start_y, start_x, f"{' ' * ((self.min_width - 52) // 2)}")
-        screen.addstr("- PyDoch(")
-        screen.addstr("https://github.com/OtaProject2024/PyDoch", curses.A_UNDERLINE)
-        screen.addstr(") -")
-        screen.addstr(f"{' ' * ((self.min_width - 52) // 2)}")
-
+        self.__draw_header(screen, start_y, start_x)
         self.__draw_left(screen, start_y + 1, start_x)
         self.__draw_right(screen, start_y + 1, start_x + self.content_width + 3)
+        self.__draw_footer(screen, start_y + self.min_height - 1, start_x)
         screen.refresh()
 
     def __simple_display(self, screen):
@@ -244,20 +282,33 @@ class Overview:
             screen.addstr(f"{str(self.times).zfill(2)}/{str(self.st_times).zfill(2)}".ljust(7))
             screen.addstr("[")
             per = round(self.times / self.st_times * 100, 2)
+            filled = int(per) // 4
             per_str = f"{per:.02f}%".rjust(7)
+            c = 1
             if per == 100:
-                screen.addstr(per_str, self.color[4])
+                c = 4
             elif per >= 70:
-                screen.addstr(per_str, self.color[2])
+                c = 2
             elif per >= 50:
-                screen.addstr(per_str, self.color[3])
-            else:
-                screen.addstr(per_str)
+                c = 3
+            screen.addstr(per_str, self.color[c])
             screen.addstr(f"]{' ' * (self.content_width - 24)}┃")
+            current_y += 1
+
+            screen.addstr(current_y, start_x, "┃".ljust(9))
+            screen.addstr("━" * filled, self.color[c])
+            screen.addstr("━" * (25 - filled))
+            screen.addstr("┃".rjust(5))
+            current_y += 1
         else:
             screen.addstr("invalid".ljust(self.content_width - 17), self.color[1])
             screen.addstr(f"{' ' * (self.content_width - 28)}┃")
-        current_y += 1
+            current_y += 1
+
+            screen.addstr(current_y, start_x, "┃".ljust(9))
+            screen.addstr("━" * 25)
+            screen.addstr("┃".rjust(5))
+            current_y += 1
 
         screen.addstr(current_y, start_x, "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
         current_y += 1
@@ -294,7 +345,11 @@ class Overview:
         return current_y
 
     def __draw_fish(self, screen, start_y, start_x):
-        self.cnt += self.direction
+        current_time = time.time()
+        if current_time - self.__render_time >= 0.5:
+            self.__render_time = current_time
+            self.cnt += self.direction
+
         fish = "><>" if self.direction == 1 else "<><"
         if self.cnt == 37:
             self.direction = -1

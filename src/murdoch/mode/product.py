@@ -121,11 +121,11 @@ class Product:
         self.logger.info("Start processing")
         try:
             self.threads = [
-                threading.Thread(target=self.__dc, daemon=True, name="DCMotor control"),
-                threading.Thread(target=self.__sv, daemon=True, name="SVMotor control"),
+                threading.Thread(target=self.__dc, daemon=True, name="dc_motor control"),
+                threading.Thread(target=self.__sv, daemon=True, name="sv_motor control"),
             ]
             if self.overview is not None:
-                self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="Overview control"))
+                self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="overview control"))
 
             for thread in self.threads:
                 thread.start()
