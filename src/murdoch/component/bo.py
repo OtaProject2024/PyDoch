@@ -1,13 +1,15 @@
 import time
 
-import adafruit_bno055
-import board
-
 
 # Controlling BNO055Sensor
 class BNO055Sensor:
     def __init__(self, freq, ivl, mag_threshold, acc_threshold):
-        self.__sensor = adafruit_bno055.BNO055_I2C(board.I2C())
+        import adafruit_bno055
+        self.adafruit_bno055 = adafruit_bno055
+        import board
+        self.board = board
+
+        self.__sensor = self.adafruit_bno055.BNO055_I2C(self.board.I2C())
         self.__frequency = freq
         self.__interval = ivl
 
