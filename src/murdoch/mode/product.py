@@ -83,7 +83,9 @@ class Product:
         )
         d.start()
         while not self.stop_event.is_set():
-            if not self.behavior: continue
+            if not self.behavior:
+                d.stay()
+                continue
             d.run(self.method)
         d.stop()
 
@@ -96,7 +98,8 @@ class Product:
         )
         s.start()
         while not self.stop_event.is_set():
-            if not self.behavior: continue
+            if not self.behavior:
+                continue
             s.run(self.method)
         s.stop()
 

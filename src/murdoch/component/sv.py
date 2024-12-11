@@ -20,19 +20,20 @@ class SVMotor:
         self.__convert_angle(self.__angle)
 
     def run(self, state=0):
-        if state == 0:
-            time.sleep(2)
-        elif state == 1:
-            self.__convert_angle(self.__angle)
-            time.sleep(0.5)
-            self.__convert_angle(self.__angle * -1)
-            time.sleep(0.5)
-        elif state == 2:
-            self.__convert_angle(self.__angle)
-            time.sleep(3)
-        elif state == 3:
-            self.__convert_angle(self.__angle * -1)
-            time.sleep(3)
+        match state:
+            case 0:
+                time.sleep(2)
+            case 1:
+                self.__convert_angle(self.__angle)
+                time.sleep(0.5)
+                self.__convert_angle(self.__angle * -1)
+                time.sleep(0.5)
+            case 2:
+                self.__convert_angle(self.__angle)
+                time.sleep(3)
+            case 3:
+                self.__convert_angle(self.__angle * -1)
+                time.sleep(3)
 
     def stop(self):
         self.__ch.end()

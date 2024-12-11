@@ -17,11 +17,13 @@ class DCMotor:
 
     # Change to forward mode
     def __forward(self):
+        self.__safeguard()
         self.__ch2.set_volt(True)
         self.__ch3.set_volt(False)
 
     # Change to backward mode
     def __backward(self):
+        self.__safeguard()
         self.__ch2.set_volt(False)
         self.__ch3.set_volt(True)
 
@@ -32,6 +34,7 @@ class DCMotor:
 
     # Change to brake mode
     def __brake(self):
+        self.__safeguard()
         self.__ch2.set_volt(True)
         self.__ch3.set_volt(True)
 
@@ -39,22 +42,31 @@ class DCMotor:
     def __speed(self, pw=100):
         self.__ch1.set_duty(pw)
 
+    # Countermeasures against Shoot-Through Current
+    def __safeguard(self):
+        self.__stop()
+        time.sleep(0.001)  # 100µs=<
+
     def start(self):
         self.__forward()
         self.__speed(self.__power)
 
     def run(self, state=0):
-        if state == 0:
-            self.__speed(0)
-        elif state == 1:
-            self.__speed(self.__power)
-        elif state == 2 or state == 3:
-            self.__speed(self.__save_power)
+        match state:
+            case 0:
+                self.__speed(0)
+            case 1:
+                self.__speed(self.__power)
+            case 2, 3:
+                self.__speed(self.__save_power)
 
-        time.sleep(self.__direction)
         self.__backward()
         time.sleep(self.__direction)
         self.__forward()
+        time.sleep(self.__direction)
+
+    def stay(self):
+        self.__stop()
 
     def stop(self):
         self.__ch1.end()

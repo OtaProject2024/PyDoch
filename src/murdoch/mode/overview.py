@@ -68,7 +68,7 @@ class Overview:
     def __draw_header(self, screen, start_y, start_x):
         screen.addstr(start_y, start_x, f"{' ' * ((self.min_width - 52) // 2)}")
         screen.addstr("- PyDoch(")
-        screen.addstr("https://github.com/OtaProject2024/PyDoch", curses.A_UNDERLINE)
+        screen.addstr(" https://github.com/OtaProject2024/PyDoch ", curses.A_UNDERLINE)
         screen.addstr(") -")
         screen.addstr(f"{' ' * ((self.min_width - 52) // 2)}")
 
