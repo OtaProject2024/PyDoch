@@ -39,11 +39,12 @@ class Channel:
         else:
             GPIO.output(self.__channel, GPIO.LOW)
 
-    # Wait for change
-    def wait(self):
-        while True:
-            if GPIO.input(self.__channel) == 0:
-                break
+    # Input monitoring
+    def input(self):
+        if GPIO.input(self.__channel) == 0:
+            return True
+        elif GPIO.input(self.__channel) == 1:
+            return False
 
     # Deactivate channel
     def end(self):

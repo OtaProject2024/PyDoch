@@ -16,21 +16,19 @@ pip install pygame
 # Create the config file
 cat <<EOF > conf/config.yaml
 operation:
-  interface:
-    mode: "NORMAL"
-  action:
-    normal_delay: 5
-    sensor_interrupt_delay: 10
+  mode: "RICH"
+  normal_delay: 5
+  sensor_interrupt_delay: 10
 test:
-  target:
-    name: "SVMotor"
-    times: 30
-    delay: 3
-    method: 1
+  target: "SVMotor"
+  times: 30
+  interval: 3
+  method: 1
 components:
   button:
     channel: 24
     delay: 1
+    default: false
   bno055_sensor:
     frequency: 5
     interval: 0.5

@@ -35,12 +35,33 @@ class Test:
     def __ov(self):
         while not self.stop_event.is_set():
             self.overview.run(
-                threads=self.threads,
-                behavior=self.behavior,
-                method=self.config["test"]["target"]["method"],
-                times=self.times,
-                st_times=self.config["test"]["target"]["times"]
+                self.threads,
+                self.behavior,
+                self.config["test"]["method"],
+                self.times,
+                self.config["test"]["times"]
             )
+
+    # Button thread calls
+    def __bt(self):
+        b = self.component.Button(
+            self.config["components"]["button"]["channel"],
+            self.config["components"]["button"]["delay"],
+            self.config["components"]["button"]["default"]
+        )
+        for i in range(self.config["test"]["times"]):
+            if self.stop_event.is_set(): break
+            self.times += 1
+            while not self.stop_event.is_set():
+                previous_behavior = self.behavior
+                self.behavior = b.run()
+                if self.behavior != previous_behavior:
+                    if self.behavior:
+                        self.logger.info("Button: ON")
+                    else:
+                        self.logger.info("Button: OFF")
+                    break
+        b.stop()
 
     # Sensor thread calls
     # def __bo(self):
@@ -50,13 +71,13 @@ class Test:
     #         self.config["components"]["bno055_sensor"]["magnetic_threshold"],
     #         self.config["components"]["bno055_sensor"]["acceleration_threshold"]
     #     )
-    #     for i in range(self.config["test"]["target"]["times"]):
+    #     for i in range(self.config["test"]["times"]):
     #         if self.stop_event.is_set(): break
     #         contact, stationary, mag_magnitude, acc_magnitude = o.run()
     #         self.logger.debug(f"Sensor state: {contact}, {stationary}")
     #         self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
     #         self.logger.debug(f"acceleration_magnitude: {acc_magnitude}")
-    #         time.sleep(self.config["test"]["target"]["delay"])
+    #         time.sleep(self.config["test"]["delay"])
 
     # DCMotor thread calls
     def __dc(self):
@@ -69,11 +90,11 @@ class Test:
             self.config["components"]["dc_motor"]["direction"]
         )
         d.start()
-        self.logger.debug(f'Action method: {self.config["test"]["target"]["method"]}')
-        for i in range(self.config["test"]["target"]["times"]):
+        self.logger.debug(f'Action method: {self.config["test"]["method"]}')
+        for i in range(self.config["test"]["times"]):
             if self.stop_event.is_set(): break
             self.times += 1
-            d.run(self.config["test"]["target"]["method"])
+            d.run(self.config["test"]["method"])
         self.behavior = False
         d.stop()
 
@@ -85,11 +106,11 @@ class Test:
             self.config["components"]["sv_motor"]["angle"]
         )
         s.start()
-        self.logger.debug(f'Action method: {self.config["test"]["target"]["method"]}')
-        for i in range(self.config["test"]["target"]["times"]):
+        self.logger.debug(f'Action method: {self.config["test"]["method"]}')
+        for i in range(self.config["test"]["times"]):
             if self.stop_event.is_set(): break
             self.times += 1
-            s.run(self.config["test"]["target"]["method"])
+            s.run(self.config["test"]["method"])
         self.behavior = False
         s.stop()
 
@@ -99,19 +120,20 @@ class Test:
     #         self.config["components"]["sound"]["file"],
     #         self.config["components"]["sound"]["volume"],
     #     )
-    #     for i in range(self.config["test"]["target"]["times"]):
+    #     for i in range(self.config["test"]["times"]):
     #         if self.stop_event.is_set(): break
     #         self.logger.debug("Sound state: play")
     #         u.run(True)
     #         self.logger.debug("Sound state: stop")
     #         u.run(False)
-    #         time.sleep(self.config["test"]["target"]["delay"])
+    #         time.sleep(self.config["test"]["delay"])
 
     # Main thread calls
     def run(self):
         self.logger.info("Start testing")
         try:
             self.threads = [
+                threading.Thread(target=self.__bt, daemon=True, name="button control"),
                 threading.Thread(target=self.__dc, daemon=True, name="dc_motor control"),
                 threading.Thread(target=self.__sv, daemon=True, name="sv_motor control")
             ]
@@ -119,14 +141,16 @@ class Test:
                 self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="overview control"))
 
             n = 0
-            match self.config["test"]["target"]["name"].upper():
-                case "DCMOTOR":
+            match self.config["test"]["target"].upper():
+                case "BUTTON":
                     n = 0
-                case "SVMOTOR":
+                case "DCMOTOR":
                     n = 1
+                case "SVMOTOR":
+                    n = 2
 
             if self.overview is not None:
-                self.threads[2].start()
+                self.threads[3].start()
                 self.logger.debug(f"Start thread: {self.threads[0].name}")
             self.threads[n].start()
             self.logger.debug(f"Start thread: {self.threads[n].name}")
@@ -134,7 +158,7 @@ class Test:
             self.threads[n].join()
             self.logger.debug(f"Stop thread: {self.threads[n].name}")
             if self.overview is not None:
-                self.threads[2].join()
+                self.threads[3].join()
                 self.logger.debug(f"Stop thread: {self.threads[0].name}")
         except Exception as e:
             self.logger.error(e)

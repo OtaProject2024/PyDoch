@@ -23,7 +23,7 @@ class Overview:
 
         self.content_width = 37
         self.min_width = 80
-        self.min_height = 28
+        self.min_height = 31
         self.color = []
 
         self.start_time = time.time()
@@ -33,7 +33,7 @@ class Overview:
 
     def __filter_config(self, config, exclude_keys=None):
         if exclude_keys is None:
-            exclude_keys = ["operation", "times", "delay", "method", "button", "bno055_sensor", "sound"]
+            exclude_keys = ["operation", "times", "interval", "method", "bno055_sensor", "sound"]
         if isinstance(config, dict):
             return {
                 k: self.__filter_config(v, exclude_keys)
@@ -94,12 +94,12 @@ class Overview:
         screen.addstr(start_y, start_x, " exit: Ctrl+C".ljust(self.min_width // 2), curses.A_DIM)
 
         if self.tag is None or self.branch is None:
-            screen.addstr("Unknown v0.0.0  ".rjust(self.min_width // 2), curses.A_DIM)
+            screen.addstr("Unknown v0.0.0".rjust(self.min_width // 2 - 2), curses.A_DIM)
         else:
             if self.branch in ["main", "master"]:
-                screen.addstr(f"Stable {self.tag}  ".rjust(self.min_width // 2), curses.A_DIM)
+                screen.addstr(f"Stable {self.tag}".rjust(self.min_width // 2 - 2), curses.A_DIM)
             else:
-                screen.addstr(f"Beta {self.tag}  ".rjust(self.min_width // 2), curses.A_DIM)
+                screen.addstr(f"Beta {self.tag}".rjust(self.min_width // 2 - 2), curses.A_DIM)
 
     def __display(self, screen):
         screen.clear()
@@ -107,7 +107,7 @@ class Overview:
         height, width = screen.getmaxyx()
         if not self.__check_size(screen, height, width): return
 
-        start_x = (width - self.min_width) // 2
+        start_x = (width - self.min_width) // 2 + 1
         start_y = (height - self.min_height) // 2
 
         self.__draw_header(screen, start_y, start_x)
@@ -115,6 +115,7 @@ class Overview:
         self.__draw_right(screen, start_y + 1, start_x + self.content_width + 3)
         self.__draw_footer(screen, start_y + self.min_height - 1, start_x)
         screen.refresh()
+        curses.napms(50)
 
     def __simple_display(self, screen):
         screen.addstr(2, 0, f"time: {time.strftime('%Y/%m/%d %H:%M:%S', time.localtime())}")
@@ -190,17 +191,30 @@ class Overview:
 
     def __draw_information(self, screen, start_y, start_x):
         current_y = start_y
-        screen.addstr(start_y, start_x, "┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┓")
+        screen.addstr(start_y, start_x, "┏━━━━━━━━━━━━━━┓┏━━━━━━━━━━━━━━━━━━━━━┓")
         current_y += 1
 
-        screen.addstr(current_y, start_x, "┃ MODE: ")
-        screen.addstr(f"{self.mode.ljust(7)}", self.color[4])
-        screen.addstr(" ┃ ")
-        screen.addstr(time.strftime("%Y/%m/%d %H:%M:%S ", time.localtime()))
+        screen.addstr(current_y, start_x, "┃")
+        screen.addstr("MODE".center(14), curses.A_BOLD)
+        screen.addstr("┃┃")
+        screen.addstr("DATE TIME".center(21), curses.A_BOLD)
         screen.addstr("┃")
         current_y += 1
 
-        screen.addstr(current_y, start_x, "┗━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━┛")
+        screen.addstr(current_y, start_x, "┣━━━━━━━━━━━━━━┫┣━━━━━━━━━━━━━━━━━━━━━┫")
+        current_y += 1
+
+        screen.addstr(current_y, start_x, "┃")
+        if self.mode == "TEST" or self.mode == "DEMO":
+            screen.addstr(f"{self.mode.center(14)}", self.color[4])
+        elif self.mode == "PRODUCT":
+            screen.addstr(f"{'PROD'.center(14)}", self.color[4])
+        screen.addstr("┃┃")
+        screen.addstr(time.strftime(" %Y/%m/%d %H:%M:%S ", time.localtime()))
+        screen.addstr("┃")
+        current_y += 1
+
+        screen.addstr(current_y, start_x, "┗━━━━━━━━━━━━━━┛┗━━━━━━━━━━━━━━━━━━━━━┛")
         current_y += 1
 
         return current_y
@@ -233,9 +247,9 @@ class Overview:
 
         screen.addstr(current_y, start_x, "┃ behavior: ")
         if self.behavior:
-            screen.addstr("true".ljust(5), self.color[2])
+            screen.addstr("ON".ljust(5), self.color[2])
         else:
-            screen.addstr("false".ljust(5), self.color[1])
+            screen.addstr("OFF".ljust(5), self.color[1])
         screen.addstr(f"{' ' * (self.content_width - 16)}┃")
         current_y += 1
 

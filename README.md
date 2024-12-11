@@ -94,42 +94,41 @@ pip install pygame
 
     ```yaml:conf/config.yaml
     operation:
-      interface:
-        mode: "NORMAL"                  # TUI mode (experimental feature)
-      action:
-        normal_delay: 5
-        sensor_interrupt_delay: 10
+      mode: "RICH"                      # TUI mode (experimental feature)
+      normal_delay: 5                   # Not use (current version)
+      sensor_interrupt_delay: 10        # Not use (current version)
     test:
-      target:
-        name: "SVMotor"                 # Target for test mode
-        times: 30                       # Repeat count
-        delay: 3                        # Interval between repeats
-        method: 1
+      target: "SVMotor"                 # Target for test mode
+      times: 30                         # Repeat count
+      delay: 3                          # Interval between repeats
+      method: 1                         # Not use (current version)
     components:
       button:
-        channel: 24
-        delay: 1
+        channel: 24                     # GPIO pin (BCM)
+        delay: 1                        # Input acceptance interval
+        default: false                  # Initial value
       bno055_sensor:
-        frequency: 5
-        interval: 0.5
-        acceleration_threshold: 10
-        magnetic_threshold: 500
+        frequency: 5                    # Not use (current version)
+        interval: 0.5                   # Not use (current version)
+        acceleration_threshold: 10      # Not use (current version)
+        magnetic_threshold: 500         # Not use (current version)
       dc_motor:
         pwm_channel: 12                 # GPIO pin for PWM (BCM)
         in1_channel: 22                 # GPIO pin for IN1 (BCM)
         in2_channel: 27                 # GPIO pin for IN2 (BCM)
         power: 100                      # Motor speed (duty cycle)
-        save_power: 50
+        save_power: 50                  # Not use (current version)
         direction: 0.3                  # Motor direction change interval
       sv_motor:
         channel: 18                     # GPIO pin for PWM (BCM)
         frequency: 50                   # Frequency
         angle: 40                       # Rotation angle (degrees)
       sound:
-        file: "tureta.wav"
-        volume: 1.0
+        file: "tureta.wav"              # Not use (current version)
+        volume: 1.0                     # Not use (current version)
     ```
-   [!WARNING]
+
+   **WARNING!**
    Make sure to edit ``conf/config.yaml`` rather than ``conf/default_config.yaml``.
 
 4. If ``conf/config.yaml`` does not exist, create it:
@@ -198,6 +197,6 @@ pip install pygame
 
   ![demo](assets/demo/demo.gif)
 
-  [!NOTE]
+  **NOTE!**
     - The image is being simulated on a macOS environment.
     - The image was created using [charmbracelet/vhs](https://github.com/charmbracelet/vhs). thx!

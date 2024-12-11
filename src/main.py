@@ -28,9 +28,9 @@ class Boot:
             if mode_arg in mode_list:
                 self.mode = mode_arg
             else:
-                self.mode = mode_list[2]
+                self.mode = mode_list[1]
         else:
-            self.mode = mode_list[2]
+            self.mode = mode_list[1]
 
     # Loading config file
     def __conf(self, path=os.path.join(os.path.dirname(os.path.dirname(__file__)), "conf", "config.yaml")):
@@ -42,11 +42,7 @@ class Boot:
         except FileNotFoundError as fnf_error:
             # print(fnf_error)
             with open(
-                    os.path.join(
-                        os.path.dirname(os.path.dirname(__file__)),
-                        "conf",
-                        "default_config.yaml"
-                    ),
+                    os.path.join(os.path.dirname(os.path.dirname(__file__)), "conf", "default_config.yaml"),
                     "r"
             ) as file:
                 self.config = yaml.safe_load(file)
@@ -57,7 +53,7 @@ class Boot:
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(f"[%(levelname).4s] %(name)s({self.mode[:4]}):%(asctime)s - %(message)s")
 
-        if self.mode != "DEMO" and self.config["operation"]["interface"]["mode"].upper() != "RICH":
+        if self.mode != "DEMO" and self.config["operation"]["mode"].upper() != "RICH":
             stream_handler = logging.StreamHandler(sys.stdout)
             stream_handler.setFormatter(formatter)
             self.logger.addHandler(stream_handler)
@@ -89,7 +85,7 @@ class Boot:
             self.overview = mode.Overview(self.mode, self.config)
             mode.Demo(self.config, self.logger, self.overview).run()
         else:
-            if self.config["operation"]["interface"]["mode"].upper() == "RICH":
+            if self.config["operation"]["mode"].upper() == "RICH":
                 self.overview = mode.Overview(self.mode, self.config)
             else:
                 self.__info()

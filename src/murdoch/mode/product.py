@@ -15,8 +15,8 @@ class Product:
         self.stop_event = threading.Event()
 
         self.overview = overview
-        # self.lock = threading.Lock()
-        self.behavior = True
+        self.lock = threading.Lock()
+        self.behavior = False
         self.method = 1
         # self.contact = False
         # self.stationary = False
@@ -37,34 +37,25 @@ class Product:
     # Overview thread calls
     def __ov(self):
         while not self.stop_event.is_set():
-            self.overview.run(
-                threads=self.threads,
-                behavior=self.behavior,
-                method=self.method
-            )
+            self.overview.run(self.threads, self.behavior, self.method)
 
-    # Action thread calls
-    # def __ac(self):
-    #     delay = self.config["operation"]["action"]["normal_delay"]
-    #     irq_delay = self.config["operation"]["action"]["sensor_interrupt_delay"]
-    #     while self.state and not self.stop_event.is_set():
-    #         if self.contact:
-    #             with self.lock:
-    #                 self.method = 1
-    #             self.logger.info("Sensor state: PULLED")
-    #             time.sleep(delay)
-    #         else:
-    #             if self.stationary:
-    #                 self.logger.info("Sensor state: STATIONARY")
-    #                 with self.lock:
-    #                     self.method = random.randint(2, 3)
-    #                 self.logger.debug(f"Action method: {self.method}")
-    #                 time.sleep(irq_delay)
-    #             else:
-    #                 with self.lock:
-    #                     self.method = random.randint(0, 3)
-    #                 self.logger.debug(f"Action method: {self.method}")
-    #                 time.sleep(delay)
+    # Button thread calls
+    def __bt(self):
+        b = self.component.Button(
+            self.config["components"]["button"]["channel"],
+            self.config["components"]["button"]["delay"],
+            self.config["components"]["button"]["default"]
+        )
+        while not self.stop_event.is_set():
+            previous_behavior = self.behavior
+            with self.lock:
+                self.behavior = b.run()
+            if self.behavior != previous_behavior:
+                if self.behavior:
+                    self.logger.info("Button: ON")
+                else:
+                    self.logger.info("Button: OFF")
+        b.stop()
 
     # Sensor thread calls
     # def __bo(self):
@@ -74,7 +65,7 @@ class Product:
     #         self.config["components"]["bno055_sensor"]["magnetic_threshold"],
     #         self.config["components"]["bno055_sensor"]["acceleration_threshold"]
     #     )
-    #     while self.state and not self.stop_event.is_set():
+    #     while not self.stop_event.is_set():
     #         with self.lock:
     #             self.contact, self.stationary, mag_magnitude, acc_magnitude = o.run()
     #         self.logger.debug(f"magnet_magnitude: {mag_magnitude}")
@@ -91,7 +82,8 @@ class Product:
             self.config["components"]["dc_motor"]["direction"]
         )
         d.start()
-        while self.behavior and not self.stop_event.is_set():
+        while not self.stop_event.is_set():
+            if not self.behavior: continue
             d.run(self.method)
         d.stop()
 
@@ -103,7 +95,8 @@ class Product:
             self.config["components"]["sv_motor"]["angle"]
         )
         s.start()
-        while self.behavior and not self.stop_event.is_set():
+        while not self.stop_event.is_set():
+            if not self.behavior: continue
             s.run(self.method)
         s.stop()
 
@@ -113,7 +106,7 @@ class Product:
     #         self.config["components"]["sound"]["file"],
     #         self.config["components"]["sound"]["volume"],
     #     )
-    #     while self.state and not self.stop_event.is_set():
+    #     while not self.stop_event.is_set():
     #         u.run(self.contact)
 
     # Main thread calls
@@ -121,6 +114,7 @@ class Product:
         self.logger.info("Start processing")
         try:
             self.threads = [
+                threading.Thread(target=self.__bt, daemon=True, name="button control"),
                 threading.Thread(target=self.__dc, daemon=True, name="dc_motor control"),
                 threading.Thread(target=self.__sv, daemon=True, name="sv_motor control"),
             ]

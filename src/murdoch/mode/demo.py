@@ -35,21 +35,23 @@ class Demo:
     def __ov(self):
         while not self.stop_event.is_set():
             self.overview.run(
-                threads=self.threads,
-                behavior=self.behavior,
-                method=self.method,
-                times=self.times,
-                st_times=self.config["test"]["target"]["times"]
+                self.threads,
+                self.behavior,
+                self.method,
+                self.times,
+                self.config["test"]["times"]
             )
 
     # Demo thread calls
     def __de(self):
-        self.logger.debug(f'Action method: {self.config["test"]["target"]["method"]}')
-        for i in range(self.config["test"]["target"]["times"]):
+        self.logger.debug(f'Action method: {self.config["test"]["method"]}')
+        for i in range(self.config["test"]["times"]):
             if self.stop_event.is_set(): break
             self.times += 1
             time.sleep(1)
-            self.method = random.randint(0, 3)
+            if i % 2 == 0:
+                self.behavior = random.choice([True, False])
+                self.method = random.randint(0, 3)
         self.behavior = False
 
     # Main thread calls
@@ -57,26 +59,29 @@ class Demo:
         self.logger.info("Start demonstration")
         try:
             self.threads = [
+                threading.Thread(target=self.__de, daemon=True, name="button control"),
                 threading.Thread(target=self.__de, daemon=True, name="dc_motor control"),
                 threading.Thread(target=self.__de, daemon=True, name="sv_motor control"),
                 threading.Thread(target=self.__ov, daemon=True, name="overview control")
             ]
 
             n = 0
-            match self.config["test"]["target"]["name"].upper():
-                case "DCMOTOR":
+            match self.config["test"]["target"].upper():
+                case "BUTTON":
                     n = 0
-                case "SVMOTOR":
+                case "DCMOTOR":
                     n = 1
+                case "SVMOTOR":
+                    n = 2
 
-            self.threads[2].start()
+            self.threads[3].start()
             self.logger.debug(f"Start thread: {self.threads[0].name}")
             self.threads[n].start()
             self.logger.debug(f"Start thread: {self.threads[n].name}")
 
             self.threads[n].join()
             self.logger.debug(f"Stop thread: {self.threads[n].name}")
-            self.threads[2].join()
+            self.threads[3].join()
             self.logger.debug(f"Stop thread: {self.threads[0].name}")
         except Exception as e:
             self.logger.error(e)
