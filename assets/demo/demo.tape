@@ -8,7 +8,7 @@ Set Shell "bash"
 Set TypingSpeed 100ms
 Set Framerate 60
 
-Set FontSize 24
+Set FontSize 22
 Set Width 1920
 Set Height 1080
 
@@ -22,4 +22,4 @@ Backspace 23
 Sleep 2s
 Type "sh boot.sh" Sleep 2s
 Enter
-Sleep 40s
+Sleep 60s
