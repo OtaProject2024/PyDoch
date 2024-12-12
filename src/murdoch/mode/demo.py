@@ -15,6 +15,7 @@ class Demo:
 
         self.overview = overview
         self.behavior = True
+        self.wait = False
         self.method = 1
         self.times = 0
 
@@ -39,19 +40,26 @@ class Demo:
                 self.behavior,
                 self.method,
                 self.times,
-                self.config["test"]["times"]
+                self.config["test"]["times"],
+                self.wait,
+                self.wait
             )
 
     # Demo thread calls
     def __de(self):
         self.logger.debug(f'Action method: {self.config["test"]["method"]}')
-        for i in range(self.config["test"]["times"]):
-            if self.stop_event.is_set(): break
-            self.times += 1
-            time.sleep(1)
-            if i % 2 == 0:
+        while not self.stop_event.is_set():
+            if not self.wait:
+                self.times += 1
+            if self.times % 3 == 0:
                 self.behavior = random.choice([True, False])
                 self.method = random.randint(0, 3)
+                self.wait = random.choice([True, False, False])
+                if self.wait:
+                    time.sleep(2)
+            if self.times == self.config["test"]["times"]:
+                break
+            time.sleep(1)
         self.behavior = False
 
     # Main thread calls
@@ -65,7 +73,7 @@ class Demo:
                 threading.Thread(target=self.__ov, daemon=True, name="overview control")
             ]
 
-            n = 0
+            n = 2
             match self.config["test"]["target"].upper():
                 case "BUTTON":
                     n = 0
@@ -74,15 +82,15 @@ class Demo:
                 case "SVMOTOR":
                     n = 2
 
+            self.logger.debug(f"Start thread: {self.threads[3].name}")
             self.threads[3].start()
-            self.logger.debug(f"Start thread: {self.threads[0].name}")
-            self.threads[n].start()
             self.logger.debug(f"Start thread: {self.threads[n].name}")
+            self.threads[n].start()
 
-            self.threads[n].join()
             self.logger.debug(f"Stop thread: {self.threads[n].name}")
+            self.threads[n].join()
+            self.logger.debug(f"Stop thread: {self.threads[3].name}")
             self.threads[3].join()
-            self.logger.debug(f"Stop thread: {self.threads[0].name}")
         except Exception as e:
             self.logger.error(e)
         finally:

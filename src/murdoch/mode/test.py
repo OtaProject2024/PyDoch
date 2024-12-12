@@ -38,8 +38,8 @@ class Test:
                 self.threads,
                 self.behavior,
                 self.config["test"]["method"],
-                self.times,
-                self.config["test"]["times"]
+                times=self.times,
+                st_times=self.config["test"]["times"]
             )
 
     # Button thread calls
@@ -140,7 +140,7 @@ class Test:
             if self.overview is not None:
                 self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="overview control"))
 
-            n = 0
+            n = 2
             match self.config["test"]["target"].upper():
                 case "BUTTON":
                     n = 0
@@ -150,16 +150,16 @@ class Test:
                     n = 2
 
             if self.overview is not None:
+                self.logger.debug(f"Start thread: {self.threads[3].name}")
                 self.threads[3].start()
-                self.logger.debug(f"Start thread: {self.threads[0].name}")
-            self.threads[n].start()
             self.logger.debug(f"Start thread: {self.threads[n].name}")
+            self.threads[n].start()
 
-            self.threads[n].join()
             self.logger.debug(f"Stop thread: {self.threads[n].name}")
+            self.threads[n].join()
             if self.overview is not None:
+                self.logger.debug(f"Stop thread: {self.threads[3].name}")
                 self.threads[3].join()
-                self.logger.debug(f"Stop thread: {self.threads[0].name}")
         except Exception as e:
             self.logger.error(e)
         finally:

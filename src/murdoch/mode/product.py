@@ -17,6 +17,8 @@ class Product:
         self.overview = overview
         self.lock = threading.Lock()
         self.behavior = False
+        self.dc_wait = True
+        self.sv_wait = True
         self.method = 1
         # self.contact = False
         # self.stationary = False
@@ -37,7 +39,13 @@ class Product:
     # Overview thread calls
     def __ov(self):
         while not self.stop_event.is_set():
-            self.overview.run(self.threads, self.behavior, self.method)
+            self.overview.run(
+                self.threads,
+                self.behavior,
+                self.method,
+                dc_wait=self.dc_wait,
+                sv_wait=self.sv_wait
+            )
 
     # Button thread calls
     def __bt(self):
@@ -83,10 +91,14 @@ class Product:
         )
         d.start()
         while not self.stop_event.is_set():
-            if not self.behavior:
+            if self.behavior:
+                with self.lock:
+                    self.dc_wait = False
+                d.run(self.method)
+            else:
+                with self.lock:
+                    self.dc_wait = True
                 d.stay()
-                continue
-            d.run(self.method)
         d.stop()
 
     # SVMotor thread calls
@@ -98,9 +110,13 @@ class Product:
         )
         s.start()
         while not self.stop_event.is_set():
-            if not self.behavior:
-                continue
-            s.run(self.method)
+            if self.behavior:
+                with self.lock:
+                    self.sv_wait = False
+                s.run(self.method)
+            else:
+                with self.lock:
+                    self.sv_wait = True
         s.stop()
 
     # Sound thread calls
@@ -125,12 +141,12 @@ class Product:
                 self.threads.append(threading.Thread(target=self.__ov, daemon=True, name="overview control"))
 
             for thread in self.threads:
-                thread.start()
                 self.logger.debug(f"Start thread: {thread.name}")
+                thread.start()
 
             for thread in self.threads:
-                thread.join()
                 self.logger.debug(f"Stop thread: {thread.name}")
+                thread.join()
         except Exception as e:
             self.logger.error(e)
         finally:
