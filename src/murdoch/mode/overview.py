@@ -102,7 +102,7 @@ class Overview:
         self.__draw_right(screen, start_y + 1, start_x + self.content_width + 3)
         self.__draw_footer(screen, start_y + self.min_height - 1, start_x)
         screen.refresh()
-        curses.napms(150)
+        curses.napms(500)
         # curses.napms(2000)
 
     def __simple_display(self, screen):
