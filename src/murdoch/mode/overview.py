@@ -102,8 +102,7 @@ class Overview:
         self.__draw_right(screen, start_y + 1, start_x + self.content_width + 3)
         self.__draw_footer(screen, start_y + self.min_height - 1, start_x)
         screen.refresh()
-        curses.napms(1000)
-        # curses.napms(2000)
+        curses.napms(500)
 
     def __simple_display(self, screen):
         screen.addstr(2, 0, f"time: {time.strftime('%Y/%m/%d %H:%M:%S', time.localtime())}")
